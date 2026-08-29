@@ -1,0 +1,43 @@
+# Enable rewrite engine
+RewriteEngine On
+
+# Comprehensive redirection strategy for storypointcalculator.com
+
+# 1. First handle HTTP to HTTPS redirects
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# 2. Then handle non-www to www redirects (for HTTPS)
+RewriteCond %{HTTP_HOST} ^storypointcalculator\.com$ [NC]
+RewriteRule ^ https://www.storypointcalculator.com%{REQUEST_URI} [L,R=301]
+
+# 3. Redirect any other subdomains to www
+RewriteCond %{HTTP_HOST} !^www\.storypointcalculator\.com$ [NC]
+RewriteCond %{HTTP_HOST} ^(.+)\.storypointcalculator\.com$ [NC]
+RewriteRule ^ https://www.storypointcalculator.com%{REQUEST_URI} [L,R=301]
+
+# 4. Ensure Dreamhost specific handling
+# Sometimes Dreamhost requires this explicit rule
+RewriteCond %{SERVER_PORT} 443
+RewriteCond %{HTTP_HOST} ^storypointcalculator\.com$ [NC]
+RewriteRule ^ https://www.storypointcalculator.com%{REQUEST_URI} [L,R=301]
+
+# Handle SPA routing
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
+
+# Set correct MIME types
+AddType application/javascript .js
+AddType text/css .css
+AddType application/json .json
+
+# Cache control for static assets
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2)$">
+Header set Cache-Control "max-age=2592000, public"
+</FilesMatch>
+
+# Cache control for HTML and data files
+<FilesMatch "\.(html|json|xml)$">
+Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+</FilesMatch>

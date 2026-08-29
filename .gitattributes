@@ -1,0 +1,13 @@
+# Normalise text files in the repo, check out native on Windows
+* text=auto
+
+# Binary assets — never touch line endings
+*.png binary
+*.ico binary
+*.gif binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.zip binary

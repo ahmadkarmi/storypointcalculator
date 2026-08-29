@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="description" content="Agile Estimator by Ahmad Al-Karmi" />
+  
+  <!-- Cache Control -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VG9PN1RWWE"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VG9PN1RWWE', { 
+      'debug_mode': true,
+      'cookie_domain': 'www.storypointcalculator.com',
+      'linker': {
+        'domains': ['www.storypointcalculator.com', 'storypointcalculator.com']
+      }
+    });
+    
+    // Send a test event to verify tracking
+    setTimeout(function() {
+      gtag('event', 'page_view_test', {
+        'event_category': 'testing',
+        'event_label': 'initial_load',
+        'value': 1
+      });
+    }, 2000);
+  </script>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <title>Agile Estimator – Ahmad Al-Karmi</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Cookie Consent Banner -->
+  <div id="cookie-consent" style="position: fixed; bottom: 0; left: 0; right: 0; background-color: rgba(0,0,0,0.9); color: white; padding: 1rem; z-index: 9999; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      This site uses cookies to analyze traffic and improve your experience. 
+      <a href="#" style="color: #2563eb; text-decoration: underline;">Privacy Policy</a>
+    </div>
+    <button id="accept-cookies" style="background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Accept</button>
+  </div>
+  
+  <script>
+    // Cookie consent handler
+    document.addEventListener('DOMContentLoaded', function() {
+      const consentBanner = document.getElementById('cookie-consent');
+      const acceptButton = document.getElementById('accept-cookies');
+      
+      // Check if user has already consented
+      if (localStorage.getItem('cookie-consent') === 'accepted') {
+        consentBanner.style.display = 'none';
+      } else {
+        // Disable analytics until consent is given
+        window['ga-disable-G-VG9PN1RWWE'] = true;
+      }
+      
+      // Handle accept button click
+      acceptButton.addEventListener('click', function() {
+        localStorage.setItem('cookie-consent', 'accepted');
+        consentBanner.style.display = 'none';
+        // Enable analytics after consent
+        window['ga-disable-G-VG9PN1RWWE'] = false;
+        // Send pageview after consent
+        gtag('event', 'page_view');
+      });
+    });
+  </script>
+  
+  <div class="wrapper">
+    <header class="page-header">
+      <h1>🧮 Agile Story Point Estimator</h1>
+      <p>Use sliders to evaluate 8 agile factors for an accurate Fibonacci-based estimate.</p>
+      <button class="how-it-works-btn" id="info-btn" aria-label="Show calculation info" type="button">
+  <span class="how-it-works-icon">ℹ️</span>
+  <span class="how-it-works-title">How it works</span>
+</button>
+    </header>
+    <!-- Install Toast -->
+    <div id="install-toast" class="install-toast" style="display: none;">
+  <span class="toast-message">🚀 Get Agile Estimator</span>
+  <button id="install-toast-btn" class="toast-cta">Install App</button>
+  <span id="install-toast-timer" style="margin-left: 1em; font-size: 0.97em; opacity: 0.85; min-width: 2.2em; text-align: right; letter-spacing: 0.03em;"></span>
+  <button id="install-toast-close" class="toast-close" aria-label="Close install notification">&times;</button>
+</div>
+
+    <main class="grid-layout">
+      <section id="sliders" class="sliders"></section>
+
+      <aside class="sidebar">
+        <div class="desktop-results">
+          <div class="card">
+            <h2>🎯 Estimate Range</h2>
+            <p id="range" class="result-value">-</p>
+          </div>
+          <div class="card">
+            <h2>👕 T-Shirt Size</h2>
+            <p id="tshirt" class="result-value">-</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>📏 Fibonacci Key</h3>
+          <ul class="fib-list">
+            <li><strong>1–2</strong> = XS</li>
+            <li><strong>3</strong> = S</li>
+            <li><strong>5</strong> = M</li>
+            <li><strong>8</strong> = L</li>
+            <li><strong>13</strong> = XL</li>
+            <li><strong>21</strong> = XXL</li>
+            <li><strong>34+</strong> = Epic</li>
+          </ul>
+        </div>
+
+        <div class="card chart-card">
+          <canvas id="chart"></canvas>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Mobile Bottom Summary -->
+    <div class="mobile-results">
+      <div class="mobile-summary">
+        <div class="summary-box">
+          <div>
+            <div class="label">🎯 Estimate</div>
+            <div id="range-mobile" class="value">–</div>
+          </div>
+          <div>
+            <div class="label">👕 Size</div>
+            <div id="tshirt-mobile" class="value">–</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <p>Made by <a href="https://www.ahmadkarmi.com" target="_blank">Ahmad Al-Karmi</a> • 2025</p>
+    </footer>
+  </div>
+
+  <!-- Info Modal -->
+  <div id="info-modal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.45); align-items:center; justify-content:center;">
+  <div class="modal-content" style="background:#fff; padding:2em 1.5em 1.5em 1.5em; border-radius:14px; max-width:420px; margin:auto; box-shadow:0 4px 24px rgba(0,0,0,0.13); border:1.5px solid #e5e7eb; position:relative;">
+    <div style="display:flex; align-items:center; gap:0.5em; margin-bottom:1em;">
+      <span style="font-size:1.7em;">🧠</span>
+      <h2 style="margin:0; font-size:1.18em; font-weight:600; color:#222; letter-spacing:-0.5px;">How Story Points Are Calculated</h2>
+      <button id="close-info-modal" aria-label="Close info modal" style="margin-left:auto; background:none; border:none; font-size:1.3em; cursor:pointer; color:#888; transition:color 0.2s;">✕</button>
+    </div>
+    <div style="font-size:1em; line-height:1.7; color:#333;">
+      <p style="margin-bottom:1.1em;">The estimator uses a combination of rules and a nonlinear formula to map your slider choices to Fibonacci story points:</p>
+      <ul style="padding-left:1.2em; margin-bottom:1.2em;">
+        <li style="margin-bottom:0.45em;"><b>Both Unknowns & Dependencies at 5</b>: Minimum 21 points</li>
+        <li style="margin-bottom:0.45em;"><b>Business Logic Complexity or Technical Implementation Difficulty at 5</b>: Minimum 13 points</li>
+        <li style="margin-bottom:0.45em;"><b>All sliders at 3</b>: 5 points (average story)</li>
+        <li style="margin-bottom:0.45em;"><b>All non-inverse at 1, inverse at 5</b>: 1 point (minimum)</li>
+        <li style="margin-bottom:0.45em;"><b>All non-inverse at 5, inverse at 1</b>: 34 points (maximum)</li>
+        <li style="margin-bottom:0.45em;"><b>Unknowns or Dependencies at 5</b>: Minimum 8 points</li>
+        <li style="margin-bottom:0.45em;"><b>Otherwise</b>: A nonlinear formula blends all factors for a smooth transition between Fibonacci values.</li>
+      </ul>
+      <p style="margin-bottom:0;">High risk, uncertainty, or complexity will sharply increase the estimate, while low values across all factors produce the lowest story points.</p>
+    </div>
+  </div>
+</div>
+
+  <link rel="stylesheet" href="brand-slider.css">
+  <script type="module" src="brand-slider.js"></script>
+  <script type="module" src="app.js"></script>
+  <!-- Brand Slider styles/scripts loaded globally for use in all sliders -->
+  <script type="module">
+    // Clear cache on page load
+    window.addEventListener('load', function() {
+      // Clear service worker caches
+      if ('caches' in window) {
+        caches.keys().then(function(cacheNames) {
+          cacheNames.forEach(function(cacheName) {
+            // Only clear our app's caches, not all caches
+            if (cacheName.includes('spcalculator')) {
+              caches.open(cacheName).then(function(cache) {
+                // Delete HTML and JSON files to ensure fresh content
+                cache.keys().then(function(requests) {
+                  requests.forEach(function(request) {
+                    const url = request.url;
+                    if (url.endsWith('.html') || url.endsWith('.json')) {
+                      cache.delete(request);
+                    }
+                  });
+                });
+              });
+            }
+          });
+        });
+      }
+    });
+
+    // Track info modal interactions
+    document.getElementById('info-btn').addEventListener('click', function() {
+      if (typeof gtag === 'function') {
+        gtag('event', 'open_info_modal');
+      }
+    });
+    
+    document.getElementById('close-info-modal').addEventListener('click', function() {
+      if (typeof gtag === 'function') {
+        gtag('event', 'close_info_modal');
+      }
+    });
+    
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(() => {
+        // Service Worker registered successfully
+      });
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Use the local time provided by the backend (2025-05-29T15:54:15+03:00)
+      const TODAY = '2025-05-29';
+      if (localStorage.getItem('installToastClosedDate') === TODAY) {
+        return; // Do not show toast if dismissed today
+      }
+      e.preventDefault();
+      deferredPrompt = e;
+      const toast = document.getElementById('install-toast');
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.classList.add('show');
+        // Shift page content down by toast height
+        const wrapper = document.querySelector('.wrapper');
+        wrapper.style.marginTop = toast.offsetHeight + 'px';
+        // Countdown timer logic (start after fully visible)
+        const timerSpan = document.getElementById('install-toast-timer');
+        timerSpan.textContent = '';
+        setTimeout(() => {
+          let remaining = 5.0;
+          timerSpan.textContent = `${remaining.toFixed(1)}s`;
+          let countdownInterval = setInterval(() => {
+            remaining -= 0.1;
+            if (remaining <= 0) {
+              timerSpan.textContent = '';
+              clearInterval(countdownInterval);
+            } else {
+              timerSpan.textContent = `${remaining.toFixed(1)}s`;
+            }
+          }, 100);
+          // Auto-hide after 5 seconds
+          setTimeout(() => {
+            clearInterval(countdownInterval);
+            timerSpan.textContent = '';
+            toast.classList.remove('show');
+            // Wait for the animation to finish before hiding and resetting margin
+            setTimeout(() => {
+              toast.style.display = 'none';
+              wrapper.style.marginTop = '0px';
+            }, 1500); // matches animation duration
+          }, 5000);
+          // Store interval id so we can clear it on manual close/install
+          toast._countdownInterval = countdownInterval;
+        }, 1500); // wait for animation to finish
+      }, 150);
+
+      const ctaBtn = document.getElementById('install-toast-btn');
+      ctaBtn.onclick = () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              // User accepted the install prompt
+            }
+            deferredPrompt = null;
+            toast.style.display = 'none';
+            toast.classList.remove('show');
+            // Reset margin-top
+            const wrapper = document.querySelector('.wrapper');
+            wrapper.style.marginTop = '0px';
+            // Clear countdown timer
+            const timerSpan = document.getElementById('install-toast-timer');
+            timerSpan.textContent = '';
+            if (toast._countdownInterval) clearInterval(toast._countdownInterval);
+          });
+        }
+      };
+      // Close button logic
+      const closeBtn = document.getElementById('install-toast-close');
+      closeBtn.onclick = () => {
+        toast.style.display = 'none';
+        toast.classList.remove('show');
+        localStorage.setItem('installToastClosedDate', TODAY);
+        // Reset margin-top
+        const wrapper = document.querySelector('.wrapper');
+        wrapper.style.marginTop = '0px';
+        // Clear countdown timer
+        const timerSpan = document.getElementById('install-toast-timer');
+        timerSpan.textContent = '';
+        if (toast._countdownInterval) clearInterval(toast._countdownInterval);
+      };
+    });
+  </script>
+  <!-- Preview helper: always show install toast by clearing the localStorage flag -->
+  <script>
+    localStorage.removeItem('installToastClosedDate');
+  </script>
+</body>
+</html>

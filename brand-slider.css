@@ -1,0 +1,132 @@
+.brand-slider-container {
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  margin: 0;
+  display: block;
+  height: 36px;
+  overflow: visible;
+}
+
+.brand-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 36px;
+  background: transparent;
+  position: relative;
+  z-index: 3;
+  outline: none;
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+
+/* Webkit (Chrome/Safari/Edge) Thumb Centering */
+.brand-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 18px rgba(37,99,235,0.18), 0 1.5px 8px rgba(0,0,0,0.10);
+  cursor: pointer;
+  transition: border 0.15s;
+  z-index: 5;
+  position: relative;
+  margin-top: -9px; /* (36-18)/2 to center over 18px track */
+}
+
+/* Firefox Thumb Centering */
+.brand-slider::-moz-range-thumb {
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 18px rgba(37,99,235,0.18), 0 1.5px 8px rgba(0,0,0,0.10);
+  cursor: pointer;
+  transition: border 0.15s;
+  z-index: 5;
+  position: relative;
+}
+
+/* IE/Edge Thumb Centering */
+.brand-slider::-ms-thumb {
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 18px rgba(37,99,235,0.18), 0 1.5px 8px rgba(0,0,0,0.10);
+  cursor: pointer;
+  transition: border 0.15s;
+  z-index: 5;
+  position: relative;
+}
+
+.brand-slider:focus::-webkit-slider-thumb {
+  border: 4px solid #38bdf8;
+}
+.brand-slider:focus::-moz-range-thumb {
+  border: 4px solid #38bdf8;
+}
+.brand-slider:focus::-ms-thumb {
+  border: 4px solid #38bdf8;
+}
+
+/* Remove default tracks for Firefox/IE */
+.brand-slider::-ms-fill-lower,
+.brand-slider::-ms-fill-upper {
+  background: transparent;
+}
+.brand-slider::-webkit-slider-runnable-track {
+  height: 18px;
+  background: transparent;
+}
+.brand-slider::-moz-range-track {
+  height: 18px;
+  background: transparent;
+}
+.brand-slider::-ms-fill-lower {
+  background: transparent;
+}
+.brand-slider::-ms-fill-upper {
+  background: transparent;
+}
+
+
+.brand-slider-track {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 18px;
+  border-radius: 9px;
+  background: #e0e7ef;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.brand-slider-progress {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 18px;
+  border-radius: 9px;
+  background: linear-gradient(90deg, #2563eb 0%, #38bdf8 100%);
+  z-index: 2;
+  transition: width 0.32s cubic-bezier(.68,-0.55,.27,1.55), background 0.32s cubic-bezier(.68,-0.55,.27,1.55);
+  overflow: hidden;
+  will-change: width, background;
+  pointer-events: none;
+}
+
+/* Limit progress bar to thumb center: width calc for 36px thumb */
+.brand-slider-container[data-progress] .brand-slider-progress {
+  width: calc(var(--progress, 0%) - 18px * (1 - var(--progress-num, 0) / 100));
+}
