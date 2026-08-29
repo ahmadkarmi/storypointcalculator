@@ -4,316 +4,284 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#2563eb" />
-  <meta name="description" content="Agile Estimator by Ahmad Al-Karmi" />
-  
-  <!-- Cache Control -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VG9PN1RWWE"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-VG9PN1RWWE', { 
-      'debug_mode': true,
-      'cookie_domain': 'www.storypointcalculator.com',
-      'linker': {
-        'domains': ['www.storypointcalculator.com', 'storypointcalculator.com']
-      }
-    });
-    
-    // Send a test event to verify tracking
-    setTimeout(function() {
-      gtag('event', 'page_view_test', {
-        'event_category': 'testing',
-        'event_label': 'initial_load',
-        'value': 1
-      });
-    }, 2000);
-  </script>
+  <title>Story Point Calculator – Free Agile Estimation Tool</title>
+  <meta name="description" content="Estimate story points in seconds. Rate eight factors — complexity, effort, unknowns, dependencies — and get a Fibonacci estimate and T-shirt size you can share with your team." />
+  <link rel="canonical" href="https://www.storypointcalculator.com/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.storypointcalculator.com/" />
+  <meta property="og:title" content="Story Point Calculator – Free Agile Estimation Tool" />
+  <meta property="og:description" content="Rate eight factors and get a Fibonacci story point estimate you can share with your team. Free, no sign-up, works offline." />
+  <meta property="og:image" content="https://www.storypointcalculator.com/icons/icon-512.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Story Point Calculator – Free Agile Estimation Tool" />
+  <meta name="twitter:description" content="Rate eight factors and get a Fibonacci story point estimate you can share with your team." />
 
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="icons/icon-192.png" />
-  <title>Agile Estimator – Ahmad Al-Karmi</title>
+  <link rel="stylesheet" href="components.css" />
+  <script type="module" src="app.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "Story Point Calculator",
+        "url": "https://www.storypointcalculator.com/",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Any",
+        "description": "Free agile story point estimator. Rate eight factors and get a Fibonacci estimate and T-shirt size.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Person", "name": "Ahmad Al-Karmi", "url": "https://www.ahmadkarmi.com" }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What are story points?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Story points are a relative measure of how much work a task involves. They combine complexity, volume of work and uncertainty into one number, so a team can compare stories against each other without committing to hours." }
+          },
+          {
+            "@type": "Question",
+            "name": "Why use the Fibonacci sequence for estimation?",
+            "acceptedAnswer": { "@type": "Answer", "text": "The gaps between Fibonacci numbers grow as the numbers get larger, which mirrors how estimation confidence falls away on bigger work. Choosing between 1 and 2 is meaningful; choosing between 21 and 22 is false precision, so the scale does not offer it." }
+          },
+          {
+            "@type": "Question",
+            "name": "Are story points the same as hours?",
+            "acceptedAnswer": { "@type": "Answer", "text": "No. Points measure relative size, not duration. Two teams can both call a story 5 points and deliver it in different amounts of time. Converting points to hours discards the reason for using points at all." }
+          },
+          {
+            "@type": "Question",
+            "name": "What is a T-shirt size in agile estimation?",
+            "acceptedAnswer": { "@type": "Answer", "text": "T-shirt sizing (XS to XXL) is a coarser scale used when a team wants a rough grouping rather than a number. This calculator shows both, so you can use whichever your team has adopted." }
+          },
+          {
+            "@type": "Question",
+            "name": "How should a team handle a story that scores as an Epic?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Split it. A story large enough to reach 34 points usually contains several deliverable pieces, and the estimate carries so much uncertainty that it is not useful for planning a sprint." }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
-  <!-- Cookie Consent Banner -->
-  <div id="cookie-consent" style="position: fixed; bottom: 0; left: 0; right: 0; background-color: rgba(0,0,0,0.9); color: white; padding: 1rem; z-index: 9999; display: flex; justify-content: space-between; align-items: center;">
-    <div>
-      This site uses cookies to analyze traffic and improve your experience. 
-      <a href="#" style="color: #2563eb; text-decoration: underline;">Privacy Policy</a>
-    </div>
-    <button id="accept-cookies" style="background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Accept</button>
-  </div>
-  
-  <script>
-    // Cookie consent handler
-    document.addEventListener('DOMContentLoaded', function() {
-      const consentBanner = document.getElementById('cookie-consent');
-      const acceptButton = document.getElementById('accept-cookies');
-      
-      // Check if user has already consented
-      if (localStorage.getItem('cookie-consent') === 'accepted') {
-        consentBanner.style.display = 'none';
-      } else {
-        // Disable analytics until consent is given
-        window['ga-disable-G-VG9PN1RWWE'] = true;
-      }
-      
-      // Handle accept button click
-      acceptButton.addEventListener('click', function() {
-        localStorage.setItem('cookie-consent', 'accepted');
-        consentBanner.style.display = 'none';
-        // Enable analytics after consent
-        window['ga-disable-G-VG9PN1RWWE'] = false;
-        // Send pageview after consent
-        gtag('event', 'page_view');
-      });
-    });
-  </script>
-  
   <div class="wrapper">
     <header class="page-header">
-      <h1>🧮 Agile Story Point Estimator</h1>
-      <p>Use sliders to evaluate 8 agile factors for an accurate Fibonacci-based estimate.</p>
-      <button class="how-it-works-btn" id="info-btn" aria-label="Show calculation info" type="button">
-  <span class="how-it-works-icon">ℹ️</span>
-  <span class="how-it-works-title">How it works</span>
-</button>
+      <h1>Story Point Calculator</h1>
+      <p class="lede">Rate eight factors and get a Fibonacci estimate, a T-shirt size, and a link you can paste into your ticket.</p>
+      <button class="ghost-btn" id="info-btn" type="button">
+        <span aria-hidden="true">ℹ️</span> How the estimate is calculated
+      </button>
     </header>
-    <!-- Install Toast -->
-    <div id="install-toast" class="install-toast" style="display: none;">
-  <span class="toast-message">🚀 Get Agile Estimator</span>
-  <button id="install-toast-btn" class="toast-cta">Install App</button>
-  <span id="install-toast-timer" style="margin-left: 1em; font-size: 0.97em; opacity: 0.85; min-width: 2.2em; text-align: right; letter-spacing: 0.03em;"></span>
-  <button id="install-toast-close" class="toast-close" aria-label="Close install notification">&times;</button>
-</div>
 
-    <main class="grid-layout">
-      <section id="sliders" class="sliders"></section>
+    <main class="layout">
+      <section class="factors-panel" aria-labelledby="factors-heading">
+        <h2 id="factors-heading" class="sr-only">Estimation factors</h2>
+        <div id="factors" class="factors"></div>
 
-      <aside class="sidebar">
-        <div class="desktop-results">
-          <div class="card">
-            <h2>🎯 Estimate Range</h2>
-            <p id="range" class="result-value">-</p>
-          </div>
-          <div class="card">
-            <h2>👕 T-Shirt Size</h2>
-            <p id="tshirt" class="result-value">-</p>
-          </div>
+        <details class="weights">
+          <summary>Adjust factor weights</summary>
+          <p class="weights-intro">
+            By default every factor counts equally. Bias one up or down if it
+            consistently drives effort on your team. Weights travel in the
+            shared link.
+          </p>
+          <div id="weight-rows"></div>
+          <button type="button" id="weights-reset" class="ghost-btn">Reset weights</button>
+        </details>
+      </section>
+
+      <aside class="results-panel">
+        <div class="card result-card">
+          <h2>Estimate</h2>
+          <p class="result-hero">
+            <span id="points" class="result-points">–</span>
+            <span class="result-unit">points</span>
+          </p>
+          <p class="result-meta">
+            <span id="size" class="size-badge">–</span>
+            <span id="range" class="result-range"></span>
+          </p>
+          <p id="rule" class="result-rule" hidden></p>
         </div>
 
         <div class="card">
-          <h3>📏 Fibonacci Key</h3>
-          <ul class="fib-list">
-            <li><strong>1–2</strong> = XS</li>
-            <li><strong>3</strong> = S</li>
-            <li><strong>5</strong> = M</li>
-            <li><strong>8</strong> = L</li>
-            <li><strong>13</strong> = XL</li>
-            <li><strong>21</strong> = XXL</li>
-            <li><strong>34+</strong> = Epic</li>
-          </ul>
+          <h3>What drove this estimate</h3>
+          <ul id="drivers" class="drivers"></ul>
         </div>
 
-        <div class="card chart-card">
-          <canvas id="chart"></canvas>
+        <div class="card">
+          <h3>Contribution by factor</h3>
+          <ul id="chart" class="chart"></ul>
+        </div>
+
+        <div class="card actions">
+          <button type="button" id="copy-result" data-label="Copy result">Copy result</button>
+          <button type="button" id="copy-link" data-label="Copy link">Copy link</button>
+          <button type="button" id="reset" class="ghost-btn">Reset</button>
+        </div>
+
+        <div class="card">
+          <h3>Fibonacci key</h3>
+          <ul class="fib-list">
+            <li><b>1–2</b> XS</li><li><b>3</b> S</li><li><b>5</b> M</li><li><b>8</b> L</li>
+            <li><b>13</b> XL</li><li><b>21</b> XXL</li><li><b>34</b> Epic</li>
+          </ul>
         </div>
       </aside>
     </main>
 
-    <!-- Mobile Bottom Summary -->
-    <div class="mobile-results">
-      <div class="mobile-summary">
-        <div class="summary-box">
-          <div>
-            <div class="label">🎯 Estimate</div>
-            <div id="range-mobile" class="value">–</div>
-          </div>
-          <div>
-            <div class="label">👕 Size</div>
-            <div id="tshirt-mobile" class="value">–</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <article class="prose">
+      <h2>How story point estimation works</h2>
+      <p>
+        Story points measure the <strong>relative size</strong> of a piece of work rather than how
+        long it will take. A team that estimates in hours is really estimating one person's speed on
+        one day; a team that estimates in points is describing the work itself, which stays true
+        regardless of who picks it up. Over a few sprints the team learns how many points it
+        actually completes, and that number — velocity — becomes the basis for planning.
+      </p>
+      <p>
+        Size is not the same as difficulty. A task can be enormous and completely routine, like
+        renaming a field across two hundred files, or tiny and genuinely risky, like changing one
+        line in a payment processor. Good estimation holds both ideas at once, which is why this
+        calculator asks about volume of work, complexity, and confidence separately instead of
+        asking for a single gut number.
+      </p>
+
+      <h2>The eight factors</h2>
+      <p>
+        Six of the factors push the estimate up as they increase: business logic complexity,
+        technical difficulty, amount of work, team collaboration, unknowns, and external
+        dependencies. Two run the other way — <strong>familiarity with the task</strong> and
+        <strong>clarity of requirements</strong>. Low confidence in either of those adds effort even
+        when the work itself looks small, because the team will spend time discovering what it is
+        actually building.
+      </p>
+      <p>
+        The factors are combined on a convex curve, so a story that is moderately hard in several
+        dimensions scores higher than one that is severe in a single dimension and trivial
+        elsewhere. That matches how work actually behaves: compounding uncertainty is worse than one
+        known-hard problem. Three risk floors sit on top of the curve, because a story blocked on an
+        unknown external dependency is never genuinely small no matter how tidy the rest looks.
+      </p>
+
+      <h2>Story points vs hours</h2>
+      <p>
+        The most common way to lose the value of points is to quietly convert them back into hours —
+        "a point is half a day" — at which point you have hours with extra steps, and every problem
+        that points were adopted to solve returns. Points work precisely because they are
+        <em>unitless</em> and comparative. The question is never "how long is this?" but "is this
+        bigger or smaller than that story we finished last sprint, and by roughly how much?"
+      </p>
+
+      <h2>Why Fibonacci?</h2>
+      <p>
+        The gaps in the Fibonacci sequence widen as the numbers grow: 1, 2, 3, 5, 8, 13, 21, 34.
+        That shape encodes something true about estimating — confidence collapses as work gets
+        bigger. Distinguishing a 1 from a 2 is a real judgement a team can make reliably.
+        Distinguishing a 21 from a 22 is invented precision, so the scale simply does not offer the
+        option. If a story lands on 34, the honest response is usually to split it rather than to
+        estimate it more carefully.
+      </p>
+
+      <h2>Frequently asked questions</h2>
+      <dl class="faq">
+        <dt>What are story points?</dt>
+        <dd>A relative measure of how much work a task involves, combining complexity, volume and
+          uncertainty into one number so stories can be compared without committing to hours.</dd>
+
+        <dt>Are story points the same as hours?</dt>
+        <dd>No. Points measure relative size, not duration. Two teams can both call a story 5 points
+          and deliver it in very different amounts of time.</dd>
+
+        <dt>What is a T-shirt size?</dt>
+        <dd>A coarser scale — XS through XXL — for teams that prefer a rough grouping to a number.
+          This calculator shows both, so use whichever your team has adopted.</dd>
+
+        <dt>Who should estimate?</dt>
+        <dd>The people doing the work. An estimate handed down by someone else is a deadline wearing
+          a costume, and it will not reflect what the team actually knows.</dd>
+
+        <dt>What if the team disagrees?</dt>
+        <dd>Disagreement is the useful part. A wide spread almost always means people are picturing
+          different scopes, and the conversation that follows is worth more than the number.</dd>
+
+        <dt>Does this replace planning poker?</dt>
+        <dd>No — it gives a starting point. Use it to anchor the discussion, then let the team adjust.
+          The shareable link exists so you can paste your reasoning into the ticket alongside the
+          number.</dd>
+      </dl>
+    </article>
 
     <footer class="page-footer">
-      <p>Made by <a href="https://www.ahmadkarmi.com" target="_blank">Ahmad Al-Karmi</a> • 2025</p>
+      <p>
+        Made by <a href="https://www.ahmadkarmi.com" rel="noopener" target="_blank">Ahmad Al-Karmi</a>
+        · <a href="privacy.html">Privacy</a>
+      </p>
     </footer>
   </div>
 
-  <!-- Info Modal -->
-  <div id="info-modal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.45); align-items:center; justify-content:center;">
-  <div class="modal-content" style="background:#fff; padding:2em 1.5em 1.5em 1.5em; border-radius:14px; max-width:420px; margin:auto; box-shadow:0 4px 24px rgba(0,0,0,0.13); border:1.5px solid #e5e7eb; position:relative;">
-    <div style="display:flex; align-items:center; gap:0.5em; margin-bottom:1em;">
-      <span style="font-size:1.7em;">🧠</span>
-      <h2 style="margin:0; font-size:1.18em; font-weight:600; color:#222; letter-spacing:-0.5px;">How Story Points Are Calculated</h2>
-      <button id="close-info-modal" aria-label="Close info modal" style="margin-left:auto; background:none; border:none; font-size:1.3em; cursor:pointer; color:#888; transition:color 0.2s;">✕</button>
-    </div>
-    <div style="font-size:1em; line-height:1.7; color:#333;">
-      <p style="margin-bottom:1.1em;">The estimator uses a combination of rules and a nonlinear formula to map your slider choices to Fibonacci story points:</p>
-      <ul style="padding-left:1.2em; margin-bottom:1.2em;">
-        <li style="margin-bottom:0.45em;"><b>Both Unknowns & Dependencies at 5</b>: Minimum 21 points</li>
-        <li style="margin-bottom:0.45em;"><b>Business Logic Complexity or Technical Implementation Difficulty at 5</b>: Minimum 13 points</li>
-        <li style="margin-bottom:0.45em;"><b>All sliders at 3</b>: 5 points (average story)</li>
-        <li style="margin-bottom:0.45em;"><b>All non-inverse at 1, inverse at 5</b>: 1 point (minimum)</li>
-        <li style="margin-bottom:0.45em;"><b>All non-inverse at 5, inverse at 1</b>: 34 points (maximum)</li>
-        <li style="margin-bottom:0.45em;"><b>Unknowns or Dependencies at 5</b>: Minimum 8 points</li>
-        <li style="margin-bottom:0.45em;"><b>Otherwise</b>: A nonlinear formula blends all factors for a smooth transition between Fibonacci values.</li>
+  <!-- Mobile pinned summary -->
+  <div class="mobile-summary" aria-hidden="true">
+    <div><span class="mobile-label">Estimate</span><span id="points-mobile" class="mobile-value">–</span></div>
+    <div><span class="mobile-label">Size</span><span id="size-mobile" class="mobile-value">–</span></div>
+  </div>
+
+  <!-- How it works -->
+  <div id="info-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="info-modal-title" hidden>
+    <div class="modal-content">
+      <div class="modal-head">
+        <h2 id="info-modal-title">How the estimate is calculated</h2>
+        <button id="close-info-modal" class="icon-btn" type="button" aria-label="Close">✕</button>
+      </div>
+      <p>
+        Each factor contributes its level raised to a power, so effort escalates rather than adding
+        up in a straight line. The two confidence factors are inverted first: low familiarity and
+        unclear requirements count <em>towards</em> effort.
+      </p>
+      <p>
+        The weighted total is normalised against the lowest and highest scores the same eight
+        factors could produce, then mapped onto the nearest Fibonacci band.
+      </p>
+      <p>Three risk floors then apply, in order:</p>
+      <ul>
+        <li>Unknowns <b>and</b> External Dependencies both at 5 — at least <b>21</b> points</li>
+        <li>Business Logic <b>or</b> Technical Difficulty at 5 — at least <b>13</b> points</li>
+        <li>Unknowns <b>or</b> External Dependencies at 5 — at least <b>8</b> points</li>
       </ul>
-      <p style="margin-bottom:0;">High risk, uncertainty, or complexity will sharply increase the estimate, while low values across all factors produce the lowest story points.</p>
+      <p>
+        A floor only ever raises an estimate. If the curve already scores higher, the curve wins.
+      </p>
     </div>
   </div>
-</div>
 
-  <link rel="stylesheet" href="brand-slider.css">
-  <script type="module" src="brand-slider.js"></script>
-  <script type="module" src="app.js"></script>
-  <!-- Brand Slider styles/scripts loaded globally for use in all sliders -->
-  <script type="module">
-    // Clear cache on page load
-    window.addEventListener('load', function() {
-      // Clear service worker caches
-      if ('caches' in window) {
-        caches.keys().then(function(cacheNames) {
-          cacheNames.forEach(function(cacheName) {
-            // Only clear our app's caches, not all caches
-            if (cacheName.includes('spcalculator')) {
-              caches.open(cacheName).then(function(cache) {
-                // Delete HTML and JSON files to ensure fresh content
-                cache.keys().then(function(requests) {
-                  requests.forEach(function(request) {
-                    const url = request.url;
-                    if (url.endsWith('.html') || url.endsWith('.json')) {
-                      cache.delete(request);
-                    }
-                  });
-                });
-              });
-            }
-          });
-        });
-      }
-    });
+  <div id="cookie-consent" class="consent" hidden>
+    <p>
+      This site uses analytics cookies to count visits. Nothing loads until you choose.
+      <a href="privacy.html">Privacy policy</a>
+    </p>
+    <div class="consent-actions">
+      <button type="button" id="decline-cookies" class="ghost-btn">Decline</button>
+      <button type="button" id="accept-cookies">Accept</button>
+    </div>
+  </div>
 
-    // Track info modal interactions
-    document.getElementById('info-btn').addEventListener('click', function() {
-      if (typeof gtag === 'function') {
-        gtag('event', 'open_info_modal');
-      }
-    });
-    
-    document.getElementById('close-info-modal').addEventListener('click', function() {
-      if (typeof gtag === 'function') {
-        gtag('event', 'close_info_modal');
-      }
-    });
-    
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').then(() => {
-        // Service Worker registered successfully
-      });
-    }
-
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      // Use the local time provided by the backend (2025-05-29T15:54:15+03:00)
-      const TODAY = '2025-05-29';
-      if (localStorage.getItem('installToastClosedDate') === TODAY) {
-        return; // Do not show toast if dismissed today
-      }
-      e.preventDefault();
-      deferredPrompt = e;
-      const toast = document.getElementById('install-toast');
-      toast.style.display = 'flex';
-      setTimeout(() => {
-        toast.classList.add('show');
-        // Shift page content down by toast height
-        const wrapper = document.querySelector('.wrapper');
-        wrapper.style.marginTop = toast.offsetHeight + 'px';
-        // Countdown timer logic (start after fully visible)
-        const timerSpan = document.getElementById('install-toast-timer');
-        timerSpan.textContent = '';
-        setTimeout(() => {
-          let remaining = 5.0;
-          timerSpan.textContent = `${remaining.toFixed(1)}s`;
-          let countdownInterval = setInterval(() => {
-            remaining -= 0.1;
-            if (remaining <= 0) {
-              timerSpan.textContent = '';
-              clearInterval(countdownInterval);
-            } else {
-              timerSpan.textContent = `${remaining.toFixed(1)}s`;
-            }
-          }, 100);
-          // Auto-hide after 5 seconds
-          setTimeout(() => {
-            clearInterval(countdownInterval);
-            timerSpan.textContent = '';
-            toast.classList.remove('show');
-            // Wait for the animation to finish before hiding and resetting margin
-            setTimeout(() => {
-              toast.style.display = 'none';
-              wrapper.style.marginTop = '0px';
-            }, 1500); // matches animation duration
-          }, 5000);
-          // Store interval id so we can clear it on manual close/install
-          toast._countdownInterval = countdownInterval;
-        }, 1500); // wait for animation to finish
-      }, 150);
-
-      const ctaBtn = document.getElementById('install-toast-btn');
-      ctaBtn.onclick = () => {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
-          deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-              // User accepted the install prompt
-            }
-            deferredPrompt = null;
-            toast.style.display = 'none';
-            toast.classList.remove('show');
-            // Reset margin-top
-            const wrapper = document.querySelector('.wrapper');
-            wrapper.style.marginTop = '0px';
-            // Clear countdown timer
-            const timerSpan = document.getElementById('install-toast-timer');
-            timerSpan.textContent = '';
-            if (toast._countdownInterval) clearInterval(toast._countdownInterval);
-          });
-        }
-      };
-      // Close button logic
-      const closeBtn = document.getElementById('install-toast-close');
-      closeBtn.onclick = () => {
-        toast.style.display = 'none';
-        toast.classList.remove('show');
-        localStorage.setItem('installToastClosedDate', TODAY);
-        // Reset margin-top
-        const wrapper = document.querySelector('.wrapper');
-        wrapper.style.marginTop = '0px';
-        // Clear countdown timer
-        const timerSpan = document.getElementById('install-toast-timer');
-        timerSpan.textContent = '';
-        if (toast._countdownInterval) clearInterval(toast._countdownInterval);
-      };
-    });
-  </script>
-  <!-- Preview helper: always show install toast by clearing the localStorage flag -->
   <script>
-    localStorage.removeItem('installToastClosedDate');
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+    }
   </script>
 </body>
 </html>
