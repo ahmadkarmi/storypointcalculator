@@ -190,8 +190,8 @@ function renderResult(result) {
     ? `${result.range[0]} points`
     : `typically ${result.range[0]}–${result.range[1]} points`;
 
-  el.pointsMobile.textContent = result.points;
-  el.sizeMobile.textContent = result.size;
+  el.peekPoints.textContent = result.points;
+  el.peekSize.textContent = result.size;
 
   el.rule.hidden = !result.ruleFired;
   if (result.ruleFired) el.rule.textContent = result.ruleFired;
@@ -200,11 +200,22 @@ function renderResult(result) {
   renderChart();
 }
 
+let lastPoints = null;
+
 function update() {
   const result = scoreFactors(state.values, state.weights);
   syncControls();
   renderResult(result);
   syncHash();
+
+  // Give the collapsed sheet a visible reaction, so adjusting a factor is
+  // legibly connected to the number even when the detail is out of view.
+  if (lastPoints !== null && result.points !== lastPoints) {
+    const dir = result.points > lastPoints ? 'up' : 'down';
+    el.sheet.dataset.bump = dir;
+    setTimeout(() => { delete el.sheet.dataset.bump; }, 420);
+  }
+  lastPoints = result.points;
 }
 
 /* ---------------------------------------------------------------- actions */
@@ -237,6 +248,55 @@ function reset() {
   state.values = [...DEFAULT_VALUES];
   state.weights = [...DEFAULT_WEIGHTS];
   update();
+}
+
+/* ------------------------------------------------------------------ sheet */
+
+/** The results panel is a sidebar on desktop and a bottom sheet on mobile. */
+function sheetIsCollapsible() {
+  return window.matchMedia('(max-width: 959px)').matches;
+}
+
+function setSheet(open) {
+  el.sheet.dataset.open = open ? 'true' : 'false';
+  el.sheetToggle.setAttribute('aria-expanded', String(open));
+  el.sheetBackdrop.hidden = !open;
+  // Only lock the page behind the sheet; on desktop it is a normal sidebar.
+  document.body.classList.toggle('sheet-open', open && sheetIsCollapsible());
+}
+
+function toggleSheet() {
+  setSheet(el.sheet.dataset.open !== 'true');
+}
+
+function initSheet() {
+  setSheet(false);
+  el.sheetToggle.addEventListener('click', toggleSheet);
+  el.sheetBackdrop.addEventListener('click', () => setSheet(false));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && el.sheet.dataset.open === 'true') setSheet(false);
+  });
+
+  // Swipe down on the handle to dismiss, matching the platform gesture.
+  let startY = null;
+  el.sheetToggle.addEventListener('touchstart', (e) => {
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  el.sheetToggle.addEventListener('touchend', (e) => {
+    if (startY === null) return;
+    const dy = e.changedTouches[0].clientY - startY;
+    startY = null;
+    if (Math.abs(dy) < 24) return;
+    e.preventDefault();          // a swipe is not also a tap
+    setSheet(dy < 0);
+  });
+
+  // Leaving mobile widths must not strand the page in a locked state.
+  window.matchMedia('(max-width: 959px)').addEventListener('change', () => {
+    setSheet(false);
+  });
 }
 
 /* ------------------------------------------------------------------ modal */
@@ -305,14 +365,24 @@ function initConsent() {
   if (stored === 'declined') return;
 
   el.consent.hidden = false;
+  // The consent bar and the collapsed sheet both want the bottom edge; lift
+  // the sheet clear of it until a choice is made.
+  document.body.classList.add('consent-open');
+  document.body.style.setProperty('--consent-h', `${el.consent.offsetHeight}px`);
+  const dismiss = () => {
+    el.consent.hidden = true;
+    document.body.classList.remove('consent-open');
+    document.body.style.removeProperty('--consent-h');
+  };
+
   el.consentAccept.addEventListener('click', () => {
     localStorage.setItem('cookie-consent', 'accepted');
-    el.consent.hidden = true;
+    dismiss();
     loadAnalytics();
   });
   el.consentDecline.addEventListener('click', () => {
     localStorage.setItem('cookie-consent', 'declined');
-    el.consent.hidden = true;
+    dismiss();
   });
 }
 
@@ -331,8 +401,11 @@ export function initApp() {
     points: byId('points'),
     size: byId('size'),
     range: byId('range'),
-    pointsMobile: byId('points-mobile'),
-    sizeMobile: byId('size-mobile'),
+    peekPoints: byId('peek-points'),
+    peekSize: byId('peek-size'),
+    sheet: byId('results'),
+    sheetToggle: byId('sheet-toggle'),
+    sheetBackdrop: byId('sheet-backdrop'),
     drivers: byId('drivers'),
     rule: byId('rule'),
     chart: byId('chart'),
@@ -382,6 +455,7 @@ export function initApp() {
     update();
   });
 
+  initSheet();
   initConsent();
   update();
 }

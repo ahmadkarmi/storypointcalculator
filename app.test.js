@@ -11,7 +11,12 @@ import { FACTORS, DEFAULT_VALUES } from './scoring';
 const SHELL = `
   <div id="factors"></div>
   <span id="points"></span><span id="size"></span><span id="range"></span>
-  <span id="points-mobile"></span><span id="size-mobile"></span>
+  <div id="results">
+    <button id="sheet-toggle" aria-expanded="false"></button>
+    <span id="peek-points"></span><span id="peek-size"></span>
+    <div id="sheet-body"></div>
+  </div>
+  <div id="sheet-backdrop" hidden></div>
   <ul id="drivers"></ul><p id="rule" hidden></p><ul id="chart"></ul>
   <div id="weight-rows"></div><button id="weights-reset"></button>
   <button id="reset"></button>
@@ -92,10 +97,10 @@ describe('rendering', () => {
     });
   });
 
-  test('mirrors the estimate into the mobile summary', async () => {
+  test('mirrors the estimate into the collapsed sheet peek', async () => {
     await mount();
-    expect(document.getElementById('points-mobile').textContent).toBe('5');
-    expect(document.getElementById('size-mobile').textContent).toBe('M');
+    expect(document.getElementById('peek-points').textContent).toBe('5');
+    expect(document.getElementById('peek-size').textContent).toBe('M');
   });
 
   test('renders a contribution row per factor', async () => {
@@ -205,6 +210,14 @@ describe('consent gating', () => {
     expect(document.querySelector('script[src*="googletagmanager"]')).not.toBeNull();
   });
 
+  test('the consent bar lifts the sheet clear of it, and releases on choice', async () => {
+    await mount();
+    expect(document.body.classList.contains('consent-open')).toBe(true);
+    document.getElementById('decline-cookies').click();
+    expect(document.body.classList.contains('consent-open')).toBe(false);
+    expect(document.body.style.getPropertyValue('--consent-h')).toBe('');
+  });
+
   test('declining loads nothing, now or on a later visit', async () => {
     await mount();
     document.getElementById('decline-cookies').click();
@@ -237,5 +250,64 @@ describe('info dialog', () => {
     document.getElementById('info-btn').click();
     document.getElementById('close-info-modal').click();
     expect(document.getElementById('info-modal').hidden).toBe(true);
+  });
+});
+
+describe('results sheet', () => {
+  const sheet = () => document.getElementById('results');
+  const toggle = () => document.getElementById('sheet-toggle');
+
+  test('starts collapsed', async () => {
+    await mount();
+    expect(sheet().dataset.open).toBe('false');
+    expect(toggle().getAttribute('aria-expanded')).toBe('false');
+    expect(document.getElementById('sheet-backdrop').hidden).toBe(true);
+  });
+
+  test('the peek toggles it open and shut', async () => {
+    await mount();
+    toggle().click();
+    expect(sheet().dataset.open).toBe('true');
+    expect(toggle().getAttribute('aria-expanded')).toBe('true');
+    expect(document.getElementById('sheet-backdrop').hidden).toBe(false);
+
+    toggle().click();
+    expect(sheet().dataset.open).toBe('false');
+  });
+
+  test('the backdrop dismisses it', async () => {
+    await mount();
+    toggle().click();
+    document.getElementById('sheet-backdrop').click();
+    expect(sheet().dataset.open).toBe('false');
+  });
+
+  test('Escape dismisses it', async () => {
+    await mount();
+    toggle().click();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(sheet().dataset.open).toBe('false');
+  });
+
+  test('the peek keeps updating while collapsed', async () => {
+    await mount();
+    expect(document.getElementById('peek-points').textContent).toBe('5');
+    setLevel(4, 5);
+    setLevel(5, 5);
+    expect(document.getElementById('peek-points').textContent).toBe('21');
+    expect(sheet().dataset.open).toBe('false');
+  });
+
+  test('a changed estimate bumps the peek so the tap reads as connected', async () => {
+    await mount();
+    expect(sheet().dataset.bump).toBeUndefined();
+    setLevel(0, 5);
+    expect(sheet().dataset.bump).toBe('up');
+  });
+
+  test('an unchanged estimate does not bump', async () => {
+    await mount();
+    setLevel(0, 3); // already 3
+    expect(sheet().dataset.bump).toBeUndefined();
   });
 });

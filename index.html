@@ -103,7 +103,21 @@
         </details>
       </section>
 
-      <aside class="results-panel">
+      <aside class="results-panel" id="results">
+        <button type="button" class="sheet-peek" id="sheet-toggle"
+                aria-expanded="false" aria-controls="sheet-body"
+                aria-label="Estimate details">
+          <span class="grabber" aria-hidden="true"></span>
+          <span class="peek-row" aria-hidden="true">
+            <span class="peek-title">Estimate details</span>
+            <span class="peek-points" id="peek-points">–</span>
+            <span class="peek-unit">points</span>
+            <span class="size-badge" id="peek-size">–</span>
+            <span class="peek-hint"></span>
+          </span>
+        </button>
+
+        <div class="sheet-body" id="sheet-body">
         <div class="card result-card">
           <h2>Estimate</h2>
           <p class="result-hero">
@@ -139,6 +153,7 @@
             <li><b>1–2</b> XS</li><li><b>3</b> S</li><li><b>5</b> M</li><li><b>8</b> L</li>
             <li><b>13</b> XL</li><li><b>21</b> XXL</li><li><b>34</b> Epic</li>
           </ul>
+        </div>
         </div>
       </aside>
     </main>
@@ -233,11 +248,7 @@
     </footer>
   </div>
 
-  <!-- Mobile pinned summary -->
-  <div class="mobile-summary" aria-hidden="true">
-    <div><span class="mobile-label">Estimate</span><span id="points-mobile" class="mobile-value">–</span></div>
-    <div><span class="mobile-label">Size</span><span id="size-mobile" class="mobile-value">–</span></div>
-  </div>
+  <div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
 
   <!-- How it works -->
   <div id="info-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="info-modal-title" hidden>
