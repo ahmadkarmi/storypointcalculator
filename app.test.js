@@ -1,196 +1,313 @@
 /**
  * @jest-environment jsdom
+ *
+ * UI-level tests. The estimation model itself is covered in scoring.test.js;
+ * these only assert that the DOM reflects it and that input flows through.
  */
 
-import { calculatePoints, createSliders, initApp } from './app';
+import { FACTORS, DEFAULT_VALUES } from './scoring';
 
-// Mock Chart.js to prevent errors
-const mockChartUpdate = jest.fn();
-const mockChart = {
-  update: mockChartUpdate,
-  data: { datasets: [{ data: [] }] }
+/** Minimal shell mirroring the ids app.js binds to in index.html. */
+const SHELL = `
+  <div id="factors"></div>
+  <span id="points"></span><span id="size"></span><span id="range"></span>
+  <div id="results">
+    <button id="sheet-toggle" aria-expanded="false"></button>
+    <span id="peek-points"></span><span id="peek-size"></span>
+    <div id="sheet-body"></div>
+  </div>
+  <div id="sheet-backdrop" hidden></div>
+  <ul id="drivers"></ul><p id="rule" hidden></p><ul id="chart"></ul>
+  <div id="weight-rows"></div><button id="weights-reset"></button>
+  <button id="reset"></button>
+  <button id="copy-result" data-label="Copy result"></button>
+  <button id="copy-link" data-label="Copy link"></button>
+  <div id="info-modal" hidden><button id="close-info-modal"></button><a href="#x">link</a></div>
+  <button id="info-btn"></button>
+  <div id="cookie-consent" hidden>
+    <button id="accept-cookies"></button><button id="decline-cookies"></button>
+  </div>`;
+
+let app;
+
+async function mount(hash = '') {
+  window.location.hash = hash;
+  document.body.innerHTML = SHELL;
+  jest.resetModules();
+  // Importing self-initialises against the shell above; no explicit call.
+  app = await import('./app');
+}
+
+const setLevel = (factorIndex, level) => {
+  const factor = FACTORS[factorIndex];
+  const radio = document.querySelector(
+    `input[name="factor-${factor.key}"][value="${level}"]`,
+  );
+  radio.checked = true;
+  radio.dispatchEvent(new Event('change', { bubbles: true }));
 };
 
-jest.mock('chart.js', () => ({
-  Chart: jest.fn().mockImplementation(() => mockChart)
-}));
+const shown = () => ({
+  points: document.getElementById('points').textContent,
+  size: document.getElementById('size').textContent,
+});
 
-// Mock requestAnimationFrame for smoother test execution
 beforeEach(() => {
-  jest.spyOn(window, 'requestAnimationFrame').mockImplementation(cb => {
-    cb();
-    return 1;
+  localStorage.clear();
+  window.location.hash = '';
+  // mount() only replaces document.body, so clear the head and the load guard
+  // that a previous test's consent may have left behind.
+  delete window.__gaLoaded;
+  document.querySelectorAll('script[src*="googletagmanager"]').forEach((s) => s.remove());
+});
+
+describe('rendering', () => {
+  test('renders one labelled group per factor', async () => {
+    await mount();
+    expect(document.querySelectorAll('.factor')).toHaveLength(FACTORS.length);
+    FACTORS.forEach((f) => {
+      expect(document.querySelectorAll(`input[name="factor-${f.key}"]`)).toHaveLength(5);
+    });
+  });
+
+  test('every radio carries its word in the accessible name', async () => {
+    await mount();
+    const first = FACTORS[0];
+    const radios = [...document.querySelectorAll(`input[name="factor-${first.key}"]`)];
+    radios.forEach((radio, i) => {
+      expect(radio.getAttribute('aria-label')).toBe(`${i + 1}, ${first.scale[i]}`);
+    });
+  });
+
+  test('every group points at its description for screen readers', async () => {
+    await mount();
+    FACTORS.forEach((f) => {
+      const radio = document.querySelector(`input[name="factor-${f.key}"]`);
+      expect(radio.getAttribute('aria-describedby')).toBe(`desc-${f.key}`);
+      expect(document.getElementById(`desc-${f.key}`)).not.toBeNull();
+    });
+  });
+
+  test('opens on the neutral default rather than an empty-looking state', async () => {
+    await mount();
+    expect(shown()).toEqual({ points: '5', size: 'M' });
+    FACTORS.forEach((f, i) => {
+      const checked = document.querySelector(`input[name="factor-${f.key}"]:checked`);
+      expect(Number(checked.value)).toBe(DEFAULT_VALUES[i]);
+    });
+  });
+
+  test('mirrors the estimate into the collapsed sheet peek', async () => {
+    await mount();
+    expect(document.getElementById('peek-points').textContent).toBe('5');
+    expect(document.getElementById('peek-size').textContent).toBe('M');
+  });
+
+  test('renders a contribution row per factor', async () => {
+    await mount();
+    expect(document.querySelectorAll('#chart .contrib')).toHaveLength(FACTORS.length);
   });
 });
 
-afterEach(() => {
-  window.requestAnimationFrame.mockRestore();
+describe('interaction', () => {
+  test('changing a level updates the estimate', async () => {
+    await mount();
+    const before = shown().points;
+    FACTORS.forEach((f, i) => setLevel(i, f.inverse ? 1 : 5));
+    expect(shown().points).not.toBe(before);
+    expect(shown()).toEqual({ points: '34', size: 'Epic' });
+  });
+
+  test('the selected word is shown next to the factor label', async () => {
+    await mount();
+    setLevel(0, 5);
+    const value = document.querySelector('[data-value-for="0"]');
+    expect(value.textContent).toBe(FACTORS[0].scale[4]);
+  });
+
+  test('reset returns to the neutral default', async () => {
+    await mount();
+    setLevel(0, 5);
+    setLevel(2, 5);
+    expect(shown().points).not.toBe('5');
+    document.getElementById('reset').click();
+    expect(shown()).toEqual({ points: '5', size: 'M' });
+  });
+
+  test('a fired risk floor is surfaced, and hidden otherwise', async () => {
+    await mount();
+    const rule = document.getElementById('rule');
+    expect(rule.hidden).toBe(true);
+    setLevel(4, 5); // Unknowns
+    setLevel(5, 5); // External Dependencies
+    expect(rule.hidden).toBe(false);
+    expect(rule.textContent).toMatch(/both at maximum/);
+  });
 });
 
-describe('Story Points Calculator', () => {
-  // Set up DOM for testing
-  beforeEach(() => {
-    document.body.innerHTML = `
-      <div id="sliders"></div>
-      <canvas id="chart"></canvas>
-      <button id="calculate-btn">Calculate</button>
-      <div id="total-points"></div>
-    `;
-    
-    // Mock getContext for canvas
-    HTMLCanvasElement.prototype.getContext = jest.fn(() => ({}));
+describe('shareable state', () => {
+  test('the estimate is written to the URL hash', async () => {
+    await mount();
+    expect(window.location.hash).toBe('#v=33333333');
+    setLevel(0, 5);
+    expect(window.location.hash).toBe('#v=53333333');
   });
-  
-  afterEach(() => {
-    document.body.innerHTML = '';
-    jest.clearAllMocks();
-  });
-  
-  describe('Slider Functionality', () => {
-    test('should create sliders with correct initial values', () => {
-      const inputs = [
-        { label: 'Complexity', weight: 0.5, min: 1, max: 5, value: 3 },
-        { label: 'Effort', weight: 0.5, min: 1, max: 5, value: 2 }
-      ];
-      
-      createSliders(inputs);
-      
-      const sliders = document.querySelectorAll('.brand-slider');
-      expect(sliders.length).toBe(2);
-      expect(sliders[0].value).toBe('3');
-      expect(sliders[1].value).toBe('2');
-      
-      // Verify progress bar is set correctly for the first slider
-      const progressBars = document.querySelectorAll('.brand-slider-progress');
-      expect(progressBars[0].style.width).toBe('50%');
-    });
 
-    test('should update values when slider is moved', () => {
-      const inputs = [
-        { label: 'Complexity', weight: 0.5, min: 1, max: 5, value: 3 }
-      ];
-      
-      createSliders(inputs);
-      const slider = document.querySelector('.brand-slider');
-      const input = document.querySelector('input[type="number"]');
-      
-      // Simulate slider movement
-      slider.value = '5';
-      slider.dispatchEvent(new Event('input'));
-      
-      expect(input.value).toBe('5');
-      expect(document.querySelector('.brand-slider-value').textContent).toBe('5');
+  test('a shared link restores the exact estimate', async () => {
+    await mount('#v=54321155');
+    FACTORS.forEach((f, i) => {
+      const checked = document.querySelector(`input[name="factor-${f.key}"]:checked`);
+      expect(checked.value).toBe('54321155'[i]);
     });
   });
 
-  describe('calculatePoints', () => {
-    test('should calculate total points correctly', () => {
-      const inputs = [
-        { label: 'Test 1', weight: 0.5, value: 2 },
-        { label: 'Test 2', weight: 0.3, value: 3 },
-        { label: 'Test 3', weight: 0.2, value: 5 }
-      ];
-      
-      const result = calculatePoints(inputs);
-      // Expected: (0.5 * 2) + (0.3 * 3) + (0.2 * 5) = 1 + 0.9 + 1 = 2.9
-      expect(result).toBeCloseTo(2.9, 2);
-    });
-    
-    test('should handle empty inputs', () => {
-      const result = calculatePoints([]);
-      expect(result).toBe(0);
-    });
-    
-    test('should handle inverse values correctly', () => {
-      const inputs = [
-        { label: 'Normal', weight: 0.5, value: 5 },
-        { label: 'Inverse', weight: 0.5, value: 5, inverse: true }
-      ];
-      
-      const result = calculatePoints(inputs);
-      // For inverse, we should calculate as (11 - value) * weight
-      // Expected: (0.5 * 5) + (0.5 * (11 - 5)) = 2.5 + 3 = 5.5
-      expect(result).toBeCloseTo(5.5, 2);
-    });
+  test.each([
+    ['out of range digits', '#v=99999999'],
+    ['too short', '#v=333'],
+    ['not digits', '#v=abcdefgh'],
+    ['unrelated fragment', '#hello'],
+    ['empty', ''],
+  ])('%s falls back to the defaults instead of throwing', async (_label, hash) => {
+    await mount(hash);
+    expect(shown()).toEqual({ points: '5', size: 'M' });
   });
-  
-  describe('createSliders', () => {
-    test('should create slider elements for each input', () => {
-      const inputs = [
-        { label: 'Test 1', weight: 0.5, value: 3 },
-        { label: 'Test 2', weight: 0.3, value: 3 }
-      ];
-      
-      createSliders(inputs);
-      
-      const sliders = document.querySelectorAll('input[type="range"]');
-      expect(sliders.length).toBe(2);
-    });
-    
-    test('should use the correct container ID', () => {
-      // Clear previous content
-      document.body.innerHTML = `
-        <div id="sliders"></div>
-        <button id="calculate-btn">Calculate</button>
-        <div id="total-points"></div>
-      `;
-      
-      const inputs = [
-        { label: 'Test Slider', weight: 1, value: 3 }
-      ];
-      
-      createSliders(inputs);
-      
-      const container = document.getElementById('sliders');
-      expect(container).not.toBeNull();
-      expect(container.hasChildNodes()).toBe(true);
-      expect(container.querySelector('.slider-wrapper')).not.toBeNull();
-    });
-    
-    test('should set correct initial values for sliders', () => {
-      const inputs = [
-        { label: 'Test 1', weight: 0.5, value: 5 },
-        { label: 'Test 2', weight: 0.3, value: 2 }
-      ];
-      
-      createSliders(inputs);
-      
-      const sliders = document.querySelectorAll('input[type="range"]');
-      expect(sliders[0].value).toBe('5');
-      expect(sliders[1].value).toBe('2');
-    });
-    
-    test('should update input value when slider changes', () => {
-      const inputs = [
-        { label: 'Test 1', weight: 0.5, value: 3 }
-      ];
-      
-      createSliders(inputs);
-      
-      const slider = document.querySelector('input[type="range"]');
-      slider.value = 7;
-      slider.dispatchEvent(new Event('input'));
-      
-      expect(inputs[0].value).toBe('7');
-    });
+
+  test('weights are omitted from the link while untouched', async () => {
+    await mount();
+    expect(window.location.hash).not.toContain('w=');
   });
-  
-  describe('initApp', () => {
-    test('should initialize the application with default values', () => {
-      initApp();
-      
-      const sliders = document.querySelectorAll('input[type="range"]');
-      expect(sliders.length).toBe(8); // We should have 8 sliders for our 8 inputs
-    });
-    
-    test('should calculate points when button is clicked', () => {
-      initApp();
-      
-      const calculateBtn = document.getElementById('calculate-btn');
-      calculateBtn.click();
-      
-      const totalPoints = document.getElementById('total-points');
-      expect(totalPoints.textContent).toContain('Total Points:');
-    });
+
+  test('adjusted weights travel in the link and restore', async () => {
+    await mount();
+    const slider = document.querySelector('[data-weight-for="0"]');
+    slider.value = '2';
+    slider.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(window.location.hash).toContain('w=');
+
+    const shared = window.location.hash;
+    await mount(shared);
+    expect(document.querySelector('[data-weight-for="0"]').value).toBe('2');
+  });
+
+  test('malformed weights reject the whole fragment', async () => {
+    await mount('#v=33333333&w=zzzzzzzz');
+    expect(shown()).toEqual({ points: '5', size: 'M' });
+    expect(document.querySelector('[data-weight-for="0"]').value).toBe('1');
+  });
+});
+
+describe('consent gating', () => {
+  test('no analytics script is present before a choice is made', async () => {
+    await mount();
+    expect(document.getElementById('cookie-consent').hidden).toBe(false);
+    expect(document.querySelector('script[src*="googletagmanager"]')).toBeNull();
+  });
+
+  test('accepting loads analytics and remembers the choice', async () => {
+    await mount();
+    document.getElementById('accept-cookies').click();
+    expect(localStorage.getItem('cookie-consent')).toBe('accepted');
+    expect(document.querySelector('script[src*="googletagmanager"]')).not.toBeNull();
+  });
+
+  test('the consent bar lifts the sheet clear of it, and releases on choice', async () => {
+    await mount();
+    expect(document.body.classList.contains('consent-open')).toBe(true);
+    document.getElementById('decline-cookies').click();
+    expect(document.body.classList.contains('consent-open')).toBe(false);
+    expect(document.body.style.getPropertyValue('--consent-h')).toBe('');
+  });
+
+  test('declining loads nothing, now or on a later visit', async () => {
+    await mount();
+    document.getElementById('decline-cookies').click();
+    expect(localStorage.getItem('cookie-consent')).toBe('declined');
+    expect(document.querySelector('script[src*="googletagmanager"]')).toBeNull();
+
+    await mount();
+    expect(document.getElementById('cookie-consent').hidden).toBe(true);
+    expect(document.querySelector('script[src*="googletagmanager"]')).toBeNull();
+  });
+});
+
+describe('info dialog', () => {
+  test('opens, closes on Escape, and restores focus to the trigger', async () => {
+    await mount();
+    const trigger = document.getElementById('info-btn');
+    const modal = document.getElementById('info-modal');
+
+    trigger.focus();
+    trigger.click();
+    expect(modal.hidden).toBe(false);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(modal.hidden).toBe(true);
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  test('closes on the close button', async () => {
+    await mount();
+    document.getElementById('info-btn').click();
+    document.getElementById('close-info-modal').click();
+    expect(document.getElementById('info-modal').hidden).toBe(true);
+  });
+});
+
+describe('results sheet', () => {
+  const sheet = () => document.getElementById('results');
+  const toggle = () => document.getElementById('sheet-toggle');
+
+  test('starts collapsed', async () => {
+    await mount();
+    expect(sheet().dataset.open).toBe('false');
+    expect(toggle().getAttribute('aria-expanded')).toBe('false');
+    expect(document.getElementById('sheet-backdrop').hidden).toBe(true);
+  });
+
+  test('the peek toggles it open and shut', async () => {
+    await mount();
+    toggle().click();
+    expect(sheet().dataset.open).toBe('true');
+    expect(toggle().getAttribute('aria-expanded')).toBe('true');
+    expect(document.getElementById('sheet-backdrop').hidden).toBe(false);
+
+    toggle().click();
+    expect(sheet().dataset.open).toBe('false');
+  });
+
+  test('the backdrop dismisses it', async () => {
+    await mount();
+    toggle().click();
+    document.getElementById('sheet-backdrop').click();
+    expect(sheet().dataset.open).toBe('false');
+  });
+
+  test('Escape dismisses it', async () => {
+    await mount();
+    toggle().click();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(sheet().dataset.open).toBe('false');
+  });
+
+  test('the peek keeps updating while collapsed', async () => {
+    await mount();
+    expect(document.getElementById('peek-points').textContent).toBe('5');
+    setLevel(4, 5);
+    setLevel(5, 5);
+    expect(document.getElementById('peek-points').textContent).toBe('21');
+    expect(sheet().dataset.open).toBe('false');
+  });
+
+  test('a changed estimate bumps the peek so the tap reads as connected', async () => {
+    await mount();
+    expect(sheet().dataset.bump).toBeUndefined();
+    setLevel(0, 5);
+    expect(sheet().dataset.bump).toBe('up');
+  });
+
+  test('an unchanged estimate does not bump', async () => {
+    await mount();
+    setLevel(0, 3); // already 3
+    expect(sheet().dataset.bump).toBeUndefined();
   });
 });

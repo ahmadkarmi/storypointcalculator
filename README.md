@@ -1,77 +1,63 @@
-# Story Points Calculator PWA
+# Story Point Calculator
 
-A Progressive Web App (PWA) for Agile teams to estimate story points during planning poker sessions. This app works offline and can be installed on any device.
+Agile estimation tool. Rate eight factors and get a Fibonacci story point
+estimate, a T-shirt size, and a shareable link you can paste into a ticket.
+
+Live at **[storypointcalculator.com](https://www.storypointcalculator.com/)**.
 
 ## Features
 
-- 🃏 Simple and intuitive interface for story point estimation
-- 📱 Responsive design that works on all devices
-- ⚡ Works offline with service worker caching
-- 📲 Installable as a PWA on mobile and desktop
-- ⌨️ Keyboard shortcuts for quick selection
-- 🌓 Dark mode support
-- 📊 Save your last selection (persists between sessions)
+- Eight factors on a labelled 1–5 scale — every level carries a word, so
+  "Moderate" is a judgement rather than a guess at what "3" meant
+- Fibonacci estimate plus T-shirt size and a confidence range
+- Plain-language explanation of which factors drove the number
+- Contribution breakdown showing each factor's real share of the score
+- Shareable permalinks — the estimate lives in the URL, nothing is stored
+  server-side
+- Optional per-factor weights, which travel in the link
+- Works offline, installable as a PWA
+- Dark mode, keyboard navigable, screen-reader labelled
+- Analytics load only after consent; decline and nothing is requested
 
-## Getting Started
+## Running locally
 
-### Prerequisites
+```bash
+npm install
+npm start          # http://localhost:8080
+```
 
-- A modern web browser (Chrome, Firefox, Safari, Edge)
-- Node.js (for local development)
+No build step. The app is static ES modules — `index.html`, `app.js`,
+`scoring.js`, `styles.css`.
 
-### Installation
+## Tests
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/yourusername/story-points-calculator.git
-   cd story-points-calculator
-   ```
+```bash
+npm test           # once
+npm run test:ci    # once, CI reporter
+npm run test:watch # watch mode
+```
 
-2. Install dependencies (for development):
-   ```bash
-   npm install
-   ```
+`scoring.test.js` covers the estimation model, including an exhaustive sweep of
+all 5⁸ input combinations. `app.test.js` covers rendering, interaction,
+permalinks, consent gating and the info dialog.
 
-3. Start the development server:
-   ```bash
-   npx http-server -c-1
-   ```
+## Layout
 
-4. Open your browser and navigate to `http://localhost:8080`
+| File | Role |
+| ---- | ---- |
+| `scoring.js` | Estimation model. Pure — no DOM, no globals |
+| `app.js` | Rendering, input, sharing, weights, consent |
+| `index.html` | Markup, SEO metadata, JSON-LD |
+| `styles.css` | Tokenised styles, dark mode, reduced motion |
+| `sw.js` | Service worker: network-first navigation, cache-first assets |
+| `docs/scoring.md` | How the estimate is calculated, and why |
 
-## Usage
+## Deployment
 
-1. Open the app in your browser
-2. Click on a card to select a story point value
-3. Use keyboard shortcuts (0-9, ?, b for break) for quick selection
-4. Press Escape or the Reset button to clear your selection
-5. Install the app for offline use by clicking the install button when prompted
-
-## Available Scripts
-
-- `start` - Start the development server
-- `test` - Run tests (coming soon)
-- `build` - Build for production (optimized assets)
-
-## Browser Support
-
-The app is tested on the latest versions of:
-
-- Google Chrome
-- Mozilla Firefox
-- Microsoft Edge
-- Safari (iOS and macOS)
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+Static files served from Dreamhost; `.htaccess` handles HTTPS and the
+non-www → www redirect. There is no SPA rewrite — a missing file returns an
+honest 404.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Inspired by various Agile planning poker tools
-- Built with vanilla JavaScript, HTML, and CSS
-- Icons from [Material Icons](https://fonts.google.com/icons)
+ISC

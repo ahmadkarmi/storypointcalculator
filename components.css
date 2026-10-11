@@ -1,0 +1,417 @@
+/* Component styles. Depends on the tokens defined in styles.css. */
+/* --------------------------------------------------------------- factors */
+
+.factors {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .factors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.factor {
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+
+.factor-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.factor-icon { font-size: 1rem; }
+
+.factor-label { min-width: 0; }
+
+.factor-value {
+  margin-left: auto;
+  padding-left: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.factor-desc {
+  margin: 0.35rem 0 0.85rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  /* Reserve two lines so the segment rows align across the grid. */
+  min-height: 2.6em;
+}
+
+.segments {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.3rem;
+}
+
+.segment { position: relative; }
+
+.segment input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.segment span {
+  display: block;
+  text-align: center;
+  padding: 0.55rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: background var(--speed), color var(--speed), border-color var(--speed);
+}
+
+.segment input:hover + span { border-color: var(--accent); }
+
+.segment input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.segment input:checked + span {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.anchors {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------- weights */
+
+.weights {
+  margin-top: 1.25rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.weights summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.weights-intro {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0.6rem 0 0.9rem;
+}
+
+.weight-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7rem 2.6rem;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+  margin-bottom: 0.45rem;
+}
+
+.weight-row output {
+  text-align: right;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.weight-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+/* --------------------------------------------------------------- results */
+
+.results-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  padding: 1.1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.card h2, .card h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.result-hero {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.result-points {
+  font-size: 3.4rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-unit { color: var(--text-muted); font-size: 0.95rem; }
+
+.result-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.size-badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.result-rule {
+  margin: 0.8rem 0 0;
+  padding: 0.6rem 0.75rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.drivers, .chart, .fib-list { list-style: none; margin: 0; padding: 0; }
+
+.driver {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.86rem;
+}
+
+.driver:last-child { border-bottom: 0; }
+.driver-word { color: var(--accent); font-weight: 600; white-space: nowrap; }
+.driver--none { color: var(--text-muted); display: block; }
+
+.contrib {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5rem 2.6rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  padding: 0.22rem 0;
+}
+
+.contrib-label {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contrib-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-alt);
+  overflow: hidden;
+}
+
+.contrib-bar {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width var(--speed) ease-out;
+}
+
+.contrib-pct {
+  text-align: right;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.actions button { flex: 1 1 auto; }
+
+.fib-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.fib-list b { color: var(--text); }
+
+/* ------------------------------------------------------------ bottom sheet */
+
+/* Desktop: the peek handle is not needed, the panel is a plain sidebar. */
+.sheet-peek { display: none; }
+.sheet-backdrop { display: none; }
+
+@media (max-width: 959px) {
+  .results-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 950;
+    gap: 0.75rem;
+    max-height: 88vh;
+    padding: 0 1rem calc(1rem + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -8px 32px rgba(16, 24, 40, 0.18);
+    /* Collapsed: only the peek row sits above the fold. */
+    transform: translateY(calc(100% - var(--peek-height, 5.25rem)));
+    transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+    overscroll-behavior: contain;
+  }
+
+  .results-panel[data-open='true'] { transform: translateY(0); }
+
+  .sheet-peek {
+    display: block;
+    width: 100%;
+    padding: 0.55rem 0 0.7rem;
+    background: none;
+    border: 0;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    /* The handle is the drag target; it must not scroll with the body. */
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .sheet-peek:hover { background: none; }
+
+  .grabber {
+    display: block;
+    width: 2.25rem;
+    height: 0.25rem;
+    margin: 0 auto 0.6rem;
+    border-radius: 999px;
+    background: var(--border);
+  }
+
+  .peek-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+
+  .peek-points {
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+
+  .peek-unit { font-size: 0.85rem; color: var(--text-muted); }
+
+  .peek-hint {
+    margin-left: auto;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* Text swap rather than a rotated glyph: no transform, nothing to clip. */
+  .peek-hint::after { content: 'Details ▴'; }
+  .results-panel[data-open='true'] .peek-hint::after { content: 'Close ▾'; }
+
+  /* Expanded, the hero number lives in the body — do not say it twice. */
+  .peek-title { display: none; font-size: 0.95rem; font-weight: 600; }
+
+  .results-panel[data-open='true'] .peek-title { display: inline; }
+
+  .results-panel[data-open='true'] .peek-points,
+  .results-panel[data-open='true'] .peek-unit,
+  .results-panel[data-open='true'] #peek-size { display: none; }
+
+  /* Sit above the consent bar while it is showing, instead of under it. */
+  body.consent-open .results-panel { bottom: var(--consent-h, 0px); }
+
+  .sheet-body {
+    display: grid;
+    gap: 0.75rem;
+    max-height: calc(88vh - 5.25rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 0.5rem;
+  }
+
+  .sheet-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 940;
+    background: rgba(10, 13, 18, 0.45);
+    animation: fade-in 0.25s ease-out;
+  }
+
+  .sheet-backdrop[hidden] { display: none; }
+
+  /* Keep the last factor reachable above the collapsed sheet. */
+  body { padding-bottom: 6rem; }
+  body.sheet-open { overflow: hidden; }
+
+  /* A tap on a factor visibly moves the number, even while collapsed. */
+  .results-panel[data-bump] .peek-points { animation: bump 0.42s ease-out; }
+  .results-panel[data-bump='up'] .peek-points { color: var(--accent); }
+
+  .actions { flex-wrap: nowrap; }
+  .prose { margin-top: 2.5rem; }
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+@keyframes bump {
+  0%   { transform: none; }
+  35%  { transform: translateY(-0.18em) scale(1.09); }
+  100% { transform: none; }
+}
+
+/* ------------------------------------------------------------ touch feel */
+
+@media (hover: none) {
+  /* Comfortable thumb targets; 0.55rem padding alone lands under 44px. */
+  .segment span { padding: 0.75rem 0; font-size: 0.95rem; }
+  .segment input:active + span { transform: scale(0.94); }
+  .segment span { transition: background var(--speed), color var(--speed), transform 0.12s; }
+  .card, .factor { border-radius: 14px; }
+}

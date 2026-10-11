@@ -22,10 +22,8 @@ RewriteCond %{SERVER_PORT} 443
 RewriteCond %{HTTP_HOST} ^storypointcalculator\.com$ [NC]
 RewriteRule ^ https://www.storypointcalculator.com%{REQUEST_URI} [L,R=301]
 
-# Handle SPA routing
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.html [L]
+# No SPA rewrite: this is a single page with no client-side routes. Letting a
+# missing file 404 honestly is better for indexing than serving a soft 200.
 
 # Set correct MIME types
 AddType application/javascript .js
