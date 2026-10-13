@@ -165,7 +165,8 @@
   animation: rise 0.4s ease both;
 }
 
-.estimate-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+.estimate-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0.5rem; }
+.btn-label { white-space: nowrap; }
 
 .card {
   display: grid;
@@ -202,19 +203,19 @@
   transition: width 0.55s var(--ease-out);
 }
 
-.breakdown summary { justify-content: flex-start; gap: 0.4rem; font-size: 0.82rem; color: var(--text-muted); }
+.breakdown summary { min-height: 44px; justify-content: flex-start; gap: 0.4rem; font-size: 0.82rem; color: var(--text-muted); }
 .breakdown .chart { margin-top: 0.85rem; gap: 0.4rem; animation: rise 0.3s ease both; }
 
 .contrib {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 4.5rem 2.8rem;
-  align-items: center;
-  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 0.75rem;
   font-size: 0.78rem;
 }
 
-.contrib-label { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.contrib-track { margin-top: 0; height: 4px; }
+.contrib-label { color: var(--text-muted); }
+.contrib-track { grid-column: 1 / -1; order: 3; margin-top: 0.3rem; height: 4px; }
 .contrib-pct { text-align: right; font-family: var(--mono); color: var(--text-muted); }
 
 #reset { justify-self: center; }
@@ -234,7 +235,8 @@
     bottom: 0;
     z-index: 950;
     gap: 0;
-    max-height: 90vh;
+    --sheet-max: calc(90dvh - var(--consent-h, 0px));
+    max-height: var(--sheet-max);
     padding-bottom: env(safe-area-inset-bottom);
     color: var(--panel-text);
     border-radius: 28px 28px 0 0;
@@ -268,9 +270,6 @@
     border: 0;
     text-align: left;
     cursor: pointer;
-    position: sticky;
-    top: 0;
-    z-index: 2;
   }
 
   .grabber {
@@ -337,7 +336,7 @@
   body.consent-open .results-panel { bottom: var(--consent-h, 0px); }
 
   .sheet-body {
-    max-height: calc(90vh - 5.5rem);
+    max-height: calc(var(--sheet-max) - 5.5rem);
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 0 1.25rem;
@@ -384,4 +383,18 @@
 @keyframes ripple {
   from { box-shadow: 0 16px 40px rgba(22, 21, 15, 0.28), 0 0 0 0 rgba(255, 90, 31, 0.7); }
   to { box-shadow: 0 16px 40px rgba(22, 21, 15, 0.28), 0 0 0 12px rgba(255, 90, 31, 0); }
+}
+
+/* Tablets: a centred sheet instead of one stretched edge to edge. */
+@media (min-width: 640px) and (max-width: 959px) {
+  .results-panel { max-width: 40rem; margin-inline: auto; }
+}
+
+/* Landscape phones: give the open sheet's content the room, not its chrome. */
+@media (max-width: 959px) and (max-height: 500px) {
+  .results-panel[data-open='true'] .grabber { display: none; }
+  .results-panel[data-open='true'] .sheet-peek { padding: 0.25rem 0.75rem; }
+  .results-panel[data-open='true'] .peek-row { height: 44px; }
+  .results-panel[data-open='true'] .peek-hint { height: 40px; }
+  .estimate-points { font-size: 4.5rem; }
 }

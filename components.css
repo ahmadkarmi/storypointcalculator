@@ -256,3 +256,7 @@
 
 .weight-row output { text-align: right; font-family: var(--mono); color: var(--text-muted); }
 .weight-row input[type='range'] { width: 100%; accent-color: var(--accent); }
+
+@media (pointer: coarse) {
+  .weight-row input[type='range'] { height: 44px; }
+}

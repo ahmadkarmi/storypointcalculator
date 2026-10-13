@@ -37,6 +37,7 @@
   --on-accent: #16150f;
   --accent-ink: #c2410c;
   --accent-glow: rgba(255, 90, 31, 0.45);
+  --text-soft: #7d7a71;
 
   /* The estimate panel is graphite in both themes. */
   --panel: #16150f;
@@ -68,6 +69,7 @@
     --border: #2e2c26;
     --border-strong: #3a3832;
     --accent-ink: #ff8a5b;
+    --text-soft: #9a978e;
 
     --panel: #1f1d18;
     --panel-raised: #2e2c26;
@@ -188,6 +190,7 @@ button { font: inherit; color: inherit; }
 }
 
 .brand {
+  min-height: 44px;
   min-width: 0;
   white-space: nowrap;
   display: flex;
@@ -245,7 +248,7 @@ button { font: inherit; color: inherit; }
   font-weight: 400;
   font-size: 0.86em;
   letter-spacing: -0.06em;
-  color: #9a978e;
+  color: var(--text-soft);
 }
 
 .caret {
@@ -354,7 +357,7 @@ details[open] > summary .chev { transform: rotate(180deg); }
   color: var(--text-faint);
 }
 
-.page-footer a { color: inherit; }
+.page-footer a { color: inherit; display: inline-block; padding-block: 0.75rem; margin-block: -0.75rem; }
 
 /* ----------------------------------------------------------------- modal */
 
@@ -384,7 +387,21 @@ details[open] > summary .chev { transform: rotate(180deg); }
   animation: dialog-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
 }
 
-.modal-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
+/* The close button stays in view however far the dialog scrolls. */
+.modal-head {
+  position: sticky;
+  top: -1.75rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: -1.75rem -1.75rem 1rem;
+  padding: 1.75rem 1.75rem 0.75rem;
+  background: var(--surface);
+}
+
+body.modal-open { overflow: hidden; }
 .modal-head h2 { margin: 0; font-size: 1.25rem; letter-spacing: -0.02em; }
 .modal-content p { font-size: 0.94rem; color: var(--text-muted); }
 
@@ -398,6 +415,10 @@ details[open] > summary .chev { transform: rotate(180deg); }
   font-family: var(--mono);
   font-size: 0.78rem;
   line-height: 1.7;
+}
+
+@media (max-width: 399px) {
+  .formula { font-size: 0.68rem; white-space: pre-wrap; }
 }
 
 .formula .c { color: var(--panel-faint); }

@@ -239,12 +239,21 @@ function sheetIsCollapsible() {
   return window.matchMedia('(max-width: 959px)').matches;
 }
 
+/** Page regions behind the sheet; inert while it is open so focus stays in it. */
+const BEHIND_SHEET = '.topbar, .factors-panel, .about, .page-footer';
+
 function setSheet(open) {
+  const collapsible = sheetIsCollapsible();
   el.sheet.dataset.open = open ? 'true' : 'false';
   el.sheetToggle.setAttribute('aria-expanded', String(open));
   el.sheetBackdrop.hidden = !open;
   // Only lock the page behind the sheet; on desktop it is a normal sidebar.
-  document.body.classList.toggle('sheet-open', open && sheetIsCollapsible());
+  document.body.classList.toggle('sheet-open', open && collapsible);
+  // A collapsed sheet's contents are off screen: keep them out of the tab order.
+  el.sheetBody.toggleAttribute('inert', !open && collapsible);
+  document.querySelectorAll(BEHIND_SHEET).forEach((node) => {
+    node.toggleAttribute('inert', open && collapsible);
+  });
 }
 
 function toggleSheet() {
@@ -257,7 +266,10 @@ function initSheet() {
   el.sheetBackdrop.addEventListener('click', () => setSheet(false));
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && el.sheet.dataset.open === 'true') setSheet(false);
+    if (e.key === 'Escape' && el.sheet.dataset.open === 'true') {
+      setSheet(false);
+      el.sheetToggle.focus();
+    }
   });
 
   // Swipe down on the handle to dismiss, matching the platform gesture.
@@ -305,6 +317,7 @@ let lastFocused = null;
 function openModal() {
   lastFocused = document.activeElement;
   el.modal.hidden = false;
+  document.body.classList.add('modal-open');
   const first = el.modal.querySelector(FOCUSABLE);
   if (first) first.focus();
   document.addEventListener('keydown', onModalKeydown);
@@ -312,6 +325,7 @@ function openModal() {
 
 function closeModal() {
   el.modal.hidden = true;
+  document.body.classList.remove('modal-open');
   document.removeEventListener('keydown', onModalKeydown);
   if (lastFocused) lastFocused.focus();
 }
@@ -366,9 +380,14 @@ function initConsent() {
   // The consent bar and the collapsed sheet both want the bottom edge; lift
   // the sheet clear of it until a choice is made.
   document.body.classList.add('consent-open');
-  document.body.style.setProperty('--consent-h', `${el.consent.offsetHeight}px`);
+  const measure = () => {
+    document.body.style.setProperty('--consent-h', `${el.consent.offsetHeight}px`);
+  };
+  measure();
+  window.addEventListener('resize', measure);
   const dismiss = () => {
     el.consent.hidden = true;
+    window.removeEventListener('resize', measure);
     document.body.classList.remove('consent-open');
     document.body.style.removeProperty('--consent-h');
   };
@@ -408,6 +427,7 @@ export function initApp() {
     weightsSub: byId('weights-sub'),
     sheet: byId('results'),
     sheetToggle: byId('sheet-toggle'),
+    sheetBody: byId('sheet-body'),
     sheetBackdrop: byId('sheet-backdrop'),
     drivers: byId('drivers'),
     rule: byId('rule'),

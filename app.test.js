@@ -9,7 +9,7 @@ import { FACTORS, DEFAULT_VALUES } from './scoring';
 
 /** Minimal shell mirroring the ids app.js binds to in index.html. */
 const SHELL = `
-  <div id="factors"></div>
+  <section class="factors-panel"><div id="factors"></div></section>
   <span id="points"></span><span id="size"></span><span id="range"></span>
   <div id="results">
     <button id="sheet-toggle" aria-expanded="false"></button>
@@ -279,9 +279,11 @@ describe('info dialog', () => {
     trigger.focus();
     trigger.click();
     expect(modal.hidden).toBe(false);
+    expect(document.body.classList.contains('modal-open')).toBe(true);
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(modal.hidden).toBe(true);
+    expect(document.body.classList.contains('modal-open')).toBe(false);
     expect(document.activeElement).toBe(trigger);
   });
 
@@ -349,5 +351,33 @@ describe('results sheet', () => {
     await mount();
     setLevel(0, 3); // already 3
     expect(sheet().dataset.bump).toBeUndefined();
+  });
+});
+
+describe('sheet focus on phones', () => {
+  let desktopMatchMedia;
+  beforeEach(() => {
+    desktopMatchMedia = window.matchMedia;
+    window.matchMedia = (query) => ({ ...desktopMatchMedia(query), matches: true });
+  });
+  afterEach(() => { window.matchMedia = desktopMatchMedia; });
+
+  test('a collapsed sheet keeps its contents out of the tab order', async () => {
+    await mount();
+    const body = document.getElementById('sheet-body');
+    expect(body.hasAttribute('inert')).toBe(true);
+    document.getElementById('sheet-toggle').click();
+    expect(body.hasAttribute('inert')).toBe(false);
+  });
+
+  test('an open sheet makes the page behind it inert, and Escape hands focus back', async () => {
+    await mount();
+    const toggle = document.getElementById('sheet-toggle');
+    const page = document.querySelector('.factors-panel');
+    toggle.click();
+    expect(page.hasAttribute('inert')).toBe(true);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(page.hasAttribute('inert')).toBe(false);
+    expect(document.activeElement).toBe(toggle);
   });
 });
