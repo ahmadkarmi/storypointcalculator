@@ -208,14 +208,20 @@
 
 .contrib {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  column-gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) 4rem 2.8rem;
+  align-items: center;
+  column-gap: 0.6rem;
   font-size: 0.78rem;
 }
 
-.contrib-label { color: var(--text-muted); }
-.contrib-track { grid-column: 1 / -1; order: 3; margin-top: 0.3rem; height: 4px; }
+.contrib-label { color: var(--text-muted); line-height: 1.3; }
+.contrib-track { margin-top: 0; height: 3px; }
+
+/* Narrow phones: label and share share a line, the bar runs underneath. */
+@media (max-width: 479px) {
+  .contrib { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; }
+  .contrib-track { grid-column: 1 / -1; order: 3; margin-top: 0.3rem; }
+}
 .contrib-pct { text-align: right; font-family: var(--mono); color: var(--text-muted); }
 
 #reset { justify-self: center; }
@@ -396,5 +402,7 @@
   .results-panel[data-open='true'] .sheet-peek { padding: 0.25rem 0.75rem; }
   .results-panel[data-open='true'] .peek-row { height: 44px; }
   .results-panel[data-open='true'] .peek-hint { height: 40px; }
+  .sheet-body { max-height: calc(var(--sheet-max) - 3.25rem); }
+  .estimate-actions { padding-block: 0.5rem; }
   .estimate-points { font-size: 4.5rem; }
 }

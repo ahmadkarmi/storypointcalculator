@@ -50,7 +50,8 @@
   --radius: 20px;
   --radius-sm: 12px;
   --shadow: 0 1px 2px rgba(22, 21, 15, 0.04);
-  --shadow-panel: 0 24px 60px rgba(22, 21, 15, 0.22);
+  /* Kept within the sidebar's 24px padding so its scroll box never clips it. */
+  --shadow-panel: 0 10px 24px -6px rgba(22, 21, 15, 0.3);
 
   --spring: cubic-bezier(0.34, 1.45, 0.5, 1);
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -76,7 +77,7 @@
     --panel-line: #3a3832;
 
     --shadow: none;
-    --shadow-panel: 0 24px 60px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --shadow-panel: 0 10px 24px -6px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   }
 }
 
@@ -279,9 +280,22 @@ button { font: inherit; color: inherit; }
 
 @media (min-width: 960px) {
   .layout { grid-template-columns: minmax(0, 1fr) minmax(340px, 410px); }
-  /* --stick-top is set by app.js: a panel taller than the window scrolls
-     with the page until its end is in view, then sticks there. */
-  .results-panel { position: sticky; top: var(--stick-top, 1.5rem); animation-delay: 120ms; }
+  /* The estimate stays pinned while factors are edited. Anything taller than
+     the window (an open breakdown) scrolls inside the panel, so the number is
+     never pushed off screen and nothing is out of reach. The padding gives the
+     card's shadow room inside the scroll box. */
+  .results-panel {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    padding: 1.5rem 1.5rem 2rem;
+    margin: -1.5rem -1.5rem 0;
+    animation-delay: 120ms;
+  }
 }
 
 @media (max-width: 639px) {
