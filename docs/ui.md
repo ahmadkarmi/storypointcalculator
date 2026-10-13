@@ -35,6 +35,15 @@ hot, "Routine" is calm.
 Each step is darker than the last, so levels differ in lightness and not only
 hue. Every fill and tint pairing meets WCAG AA for its text.
 
+## Data accents
+
+- Each group header carries one dot per factor, coloured by that factor's
+  heat, so a group's temperature reads at a glance.
+- The group share badge has a small pie that fills with the group's share of
+  total effort (animated through the registered `--share` property).
+- The hero carries a faint golden spiral traced through its Fibonacci
+  squares, the same scale the estimate snaps to. Hidden below 640px.
+
 ## Type
 
 Geist for text, Geist Mono for numbers, labels and anything that reads as
@@ -48,6 +57,7 @@ third party before consent and the page renders offline.
 - Changed values (points, size, level word) replay a short blur-in via the
   `.pop` class; `pop()` in `app.js` restarts it.
 - The collapsed sheet ripples when the estimate changes.
+- The hero spiral draws itself once on load; its centre dot breathes.
 
 `prefers-reduced-motion` collapses every animation and transition.
 
