@@ -1,4 +1,4 @@
-const CACHE_NAME = 'spcalculator-v4';
+const CACHE_NAME = 'spcalculator-v5';
 
 const ASSETS = [
   './',
