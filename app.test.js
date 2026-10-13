@@ -13,15 +13,16 @@ const SHELL = `
   <span id="points"></span><span id="size"></span><span id="range"></span>
   <div id="results">
     <button id="sheet-toggle" aria-expanded="false"></button>
-    <span id="peek-points"></span><span id="peek-size"></span>
+    <span id="peek-points"></span><span id="peek-size"></span><span id="peek-range"></span>
     <div id="sheet-body"></div>
   </div>
   <div id="sheet-backdrop" hidden></div>
+  <div id="meter"></div><span id="norm"></span><ol id="ribbon"></ol>
   <ul id="drivers"></ul><p id="rule" hidden></p><ul id="chart"></ul>
-  <div id="weight-rows"></div><button id="weights-reset"></button>
+  <div id="weight-rows"></div><button id="weights-reset"></button><span id="weights-sub"></span>
   <button id="reset"></button>
-  <button id="copy-result" data-label="Copy result"></button>
-  <button id="copy-link" data-label="Copy link"></button>
+  <button id="copy-result" data-label="Copy summary"><span class="btn-label"></span></button>
+  <button id="copy-link" data-label="Copy link"><span class="btn-label"></span></button>
   <div id="info-modal" hidden><button id="close-info-modal"></button><a href="#x">link</a></div>
   <button id="info-btn"></button>
   <div id="cookie-consent" hidden>
@@ -142,6 +143,45 @@ describe('interaction', () => {
     setLevel(5, 5); // External Dependencies
     expect(rule.hidden).toBe(false);
     expect(rule.textContent).toMatch(/both at maximum/);
+  });
+});
+
+describe('visual state', () => {
+  const row = (i) => document.querySelector(`.factor[data-index="${i}"]`);
+
+  test('each factor carries a heat level equal to its effort', async () => {
+    await mount();
+    expect(row(0).dataset.heat).toBe('3');
+    setLevel(0, 5);
+    expect(row(0).dataset.heat).toBe('5');
+  });
+
+  test('confidence factors run hot when confidence is low', async () => {
+    await mount();
+    setLevel(6, 1); // Familiarity: never done it
+    expect(row(6).dataset.heat).toBe('5');
+    setLevel(6, 5); // Familiarity: routine
+    expect(row(6).dataset.heat).toBe('1');
+  });
+
+  test('the ribbon marks the current band and its neighbours', async () => {
+    await mount();
+    const band = (n) => document.querySelector(`#ribbon [data-points="${n}"]`);
+    expect(band(5).classList.contains('is-current')).toBe(true);
+    expect(band(3).classList.contains('in-range')).toBe(true);
+    expect(band(8).classList.contains('in-range')).toBe(true);
+    expect(band(13).classList.contains('in-range')).toBe(false);
+  });
+
+  test('group shares account for the whole estimate', async () => {
+    await mount();
+    setLevel(0, 5);
+    const shares = [...document.querySelectorAll('[data-share-for]')]
+      .map((n) => Number(n.textContent.replace('%', '')));
+    expect(shares).toHaveLength(3);
+    const total = shares.reduce((a, b) => a + b, 0);
+    expect(total).toBeGreaterThanOrEqual(99);
+    expect(total).toBeLessThanOrEqual(101);
   });
 });
 

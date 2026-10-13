@@ -7,16 +7,22 @@
 
 import {
   FACTORS,
+  FIBONACCI,
   DEFAULT_VALUES,
   DEFAULT_WEIGHTS,
-  MIN_WEIGHT,
-  MAX_WEIGHT,
   areValuesValid,
+  effortOf,
   scoreFactors,
   contributionShares,
 } from './scoring.js';
-
-const WEIGHT_STEP = 0.25;
+import {
+  GROUPS,
+  groupMarkup,
+  ribbonMarkup,
+  weightMarkup,
+  driversMarkup,
+  chartMarkup,
+} from './markup.js';
 /** Weights travel in the URL as single digits: 0.5 -> "2", 2 -> "8". */
 const WEIGHT_ENCODE = 4;
 
@@ -70,39 +76,15 @@ function syncHash() {
 
 /* -------------------------------------------------------------- rendering */
 
-function factorMarkup(factor, index) {
-  const descId = `desc-${factor.key}`;
-  const segments = factor.scale.map((word, i) => {
-    const level = i + 1;
-    return `
-      <label class="segment">
-        <input type="radio" name="factor-${factor.key}" value="${level}"
-               aria-label="${level}, ${word}" aria-describedby="${descId}">
-        <span aria-hidden="true">${level}</span>
-      </label>`;
-  }).join('');
-
-  // role="group" rather than fieldset/legend: a legend cannot be laid out
-  // freely, and the live value would otherwise churn the group's accessible
-  // name on every change. Each radio already announces its own word.
-  return `
-    <div class="factor" role="group" aria-labelledby="label-${factor.key}" data-index="${index}">
-      <div class="factor-head">
-        <span class="factor-icon" aria-hidden="true">${factor.icon}</span>
-        <span class="factor-label" id="label-${factor.key}">${factor.label}</span>
-        <output class="factor-value" data-value-for="${index}" aria-hidden="true"></output>
-      </div>
-      <p class="factor-desc" id="${descId}">${factor.description}</p>
-      <div class="segments">${segments}</div>
-      <div class="anchors" aria-hidden="true">
-        <span>${factor.scale[0]}</span>
-        <span>${factor.scale[factor.scale.length - 1]}</span>
-      </div>
-    </div>`;
+/** Restart a one-shot CSS animation on a node whose content just changed. */
+function pop(node) {
+  node.classList.remove('pop');
+  void node.offsetWidth; // force a reflow so re-adding the class replays it
+  node.classList.add('pop');
 }
 
 function renderFactors() {
-  el.factors.innerHTML = FACTORS.map(factorMarkup).join('');
+  el.factors.innerHTML = GROUPS.map(groupMarkup).join('');
   el.factors.addEventListener('change', (event) => {
     const input = event.target;
     if (input.type !== 'radio') return;
@@ -110,16 +92,6 @@ function renderFactors() {
     state.values[index] = Number(input.value);
     update();
   });
-}
-
-function weightMarkup(factor, index) {
-  return `
-    <div class="weight-row">
-      <label for="weight-${factor.key}">${factor.label}</label>
-      <input type="range" id="weight-${factor.key}" data-weight-for="${index}"
-             min="${MIN_WEIGHT}" max="${MAX_WEIGHT}" step="${WEIGHT_STEP}">
-      <output data-weight-out="${index}"></output>
-    </div>`;
 }
 
 function renderWeights() {
@@ -136,13 +108,20 @@ function renderWeights() {
 function syncControls() {
   FACTORS.forEach((factor, i) => {
     const level = state.values[i];
-    const radio = el.factors.querySelector(
-      `input[name="factor-${factor.key}"][value="${level}"]`,
-    );
-    if (radio) radio.checked = true;
+    const row = el.factors.querySelector(`.factor[data-index="${i}"]`);
+    const radio = row.querySelector(`input[value="${level}"]`);
+    radio.checked = true;
+    row.style.setProperty('--level', level);
+    row.dataset.heat = effortOf(level, factor);
+    row.querySelectorAll('.segment').forEach((segment, s) => {
+      segment.classList.toggle('is-below', s + 1 < level);
+    });
 
-    const value = el.factors.querySelector(`[data-value-for="${i}"]`);
-    if (value) value.textContent = factor.scale[level - 1];
+    const value = row.querySelector('.factor-value');
+    const word = factor.scale[level - 1];
+    if (value.textContent && value.textContent !== word) pop(value);
+    value.textContent = word;
+    row.querySelector('.chip-level').textContent = `${level}/5`;
 
     const weight = el.weightRows.querySelector(`[data-weight-for="${i}"]`);
     if (weight) weight.value = state.weights[i];
@@ -150,54 +129,52 @@ function syncControls() {
     if (weightOut) weightOut.textContent = `${state.weights[i]}×`;
   });
   el.weightsReset.disabled = weightsAreDefault();
+  el.weightsSub.textContent = weightsAreDefault() ? 'all factors × 1' : 'custom weights';
 }
 
-function renderDrivers(result) {
-  if (!result.drivers.length) {
-    el.drivers.innerHTML =
-      '<li class="driver driver--none">Nothing is pushing this estimate up — '
-      + 'every factor is at or below moderate.</li>';
-    return;
-  }
-  el.drivers.innerHTML = result.drivers.map((d) => `
-    <li class="driver">
-      <span class="driver-label">${d.label}</span>
-      <span class="driver-word">${d.word}</span>
-    </li>`).join('');
+function renderGroupShares(shares) {
+  GROUPS.forEach((group, g) => {
+    const share = group.indexes.reduce((sum, i) => sum + shares[i], 0);
+    el.factors.querySelector(`[data-share-for="${g}"]`).textContent = `${Math.round(share * 100)}%`;
+  });
 }
 
-function renderChart() {
-  const shares = contributionShares(state.values, state.weights);
-  const peak = Math.max(...shares, 0.0001);
-  el.chart.innerHTML = FACTORS.map((factor, i) => {
-    const pct = Math.round(shares[i] * 1000) / 10;
-    return `
-      <li class="contrib">
-        <span class="contrib-label">${factor.label}</span>
-        <span class="contrib-track" aria-hidden="true">
-          <span class="contrib-bar" style="width:${(shares[i] / peak) * 100}%"></span>
-        </span>
-        <span class="contrib-pct">${pct}%</span>
-      </li>`;
-  }).join('');
+function renderScale(result) {
+  const [low, high] = result.range;
+  el.ribbon.style.setProperty('--band', FIBONACCI.indexOf(result.points));
+  el.ribbon.querySelectorAll('.band').forEach((band) => {
+    const points = Number(band.dataset.points);
+    band.classList.toggle('is-current', points === result.points);
+    band.classList.toggle('in-range', points >= low && points <= high && points !== result.points);
+  });
+  el.meter.style.setProperty('--norm', result.norm);
+  el.norm.textContent = `${result.norm.toFixed(3)} → band ${result.points}`;
 }
 
 function renderResult(result) {
+  const changed = el.points.textContent !== String(result.points);
+  const first = el.points.textContent === '–';
   el.points.textContent = result.points;
   el.size.textContent = result.size;
   el.size.dataset.size = result.size.toLowerCase();
-  el.range.textContent = result.range[0] === result.range[1]
+  const range = result.range[0] === result.range[1]
     ? `${result.range[0]} points`
     : `typically ${result.range[0]}–${result.range[1]} points`;
+  el.range.textContent = range;
 
   el.peekPoints.textContent = result.points;
   el.peekSize.textContent = result.size;
+  el.peekRange.textContent = range;
+  if (changed && !first) [el.points, el.size, el.peekPoints].forEach(pop);
 
   el.rule.hidden = !result.ruleFired;
-  if (result.ruleFired) el.rule.textContent = result.ruleFired;
+  if (result.ruleFired) el.rule.textContent = `Raised to ${result.points}: ${result.ruleFired}.`;
 
-  renderDrivers(result);
-  renderChart();
+  const shares = contributionShares(state.values, state.weights);
+  renderScale(result);
+  el.drivers.innerHTML = driversMarkup(result.drivers);
+  el.chart.innerHTML = chartMarkup(shares);
+  renderGroupShares(shares);
 }
 
 let lastPoints = null;
@@ -213,7 +190,7 @@ function update() {
   if (lastPoints !== null && result.points !== lastPoints) {
     const dir = result.points > lastPoints ? 'up' : 'down';
     el.sheet.dataset.bump = dir;
-    setTimeout(() => { delete el.sheet.dataset.bump; }, 420);
+    setTimeout(() => { delete el.sheet.dataset.bump; }, 700);
   }
   lastPoints = result.points;
 }
@@ -230,18 +207,21 @@ function summaryText() {
 }
 
 async function copy(text, button) {
-  const original = button.dataset.label;
+  const label = button.querySelector('.btn-label');
   try {
     await navigator.clipboard.writeText(text);
-    button.textContent = 'Copied';
   } catch {
     // clipboard API needs a secure context; fall back to a selectable prompt
     // rather than silently doing nothing.
     window.prompt('Copy this:', text);
-    button.textContent = original;
     return;
   }
-  setTimeout(() => { button.textContent = original; }, 1600);
+  label.textContent = 'Copied';
+  button.dataset.copied = 'true';
+  setTimeout(() => {
+    label.textContent = button.dataset.label;
+    delete button.dataset.copied;
+  }, 1600);
 }
 
 function reset() {
@@ -403,6 +383,11 @@ export function initApp() {
     range: byId('range'),
     peekPoints: byId('peek-points'),
     peekSize: byId('peek-size'),
+    peekRange: byId('peek-range'),
+    ribbon: byId('ribbon'),
+    meter: byId('meter'),
+    norm: byId('norm'),
+    weightsSub: byId('weights-sub'),
     sheet: byId('results'),
     sheetToggle: byId('sheet-toggle'),
     sheetBackdrop: byId('sheet-backdrop'),
@@ -431,6 +416,7 @@ export function initApp() {
   }
 
   renderFactors();
+  el.ribbon.innerHTML = ribbonMarkup();
   renderWeights();
 
   el.resetBtn.addEventListener('click', reset);

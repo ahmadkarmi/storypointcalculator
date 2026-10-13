@@ -7,8 +7,9 @@ Live at **[storypointcalculator.com](https://www.storypointcalculator.com/)**.
 
 ## Features
 
-- Eight factors on a labelled 1–5 scale — every level carries a word, so
-  "Moderate" is a judgement rather than a guess at what "3" meant
+- Eight factors in three groups (work, risk, confidence) on a labelled 1 to 5
+  scale; every level carries a word, so "Moderate" is a judgement rather than
+  a guess at what "3" meant, and a colour that reflects the effort it adds
 - Fibonacci estimate plus T-shirt size and a confidence range
 - Plain-language explanation of which factors drove the number
 - Contribution breakdown showing each factor's real share of the score
@@ -46,11 +47,16 @@ permalinks, consent gating and the info dialog.
 | File | Role |
 | ---- | ---- |
 | `scoring.js` | Estimation model. Pure — no DOM, no globals |
-| `app.js` | Rendering, input, sharing, weights, consent |
+| `app.js` | State, input, sharing, weights, consent; writes the DOM |
+| `markup.js` | Pure HTML templates (factor groups, ribbon, drivers) |
 | `index.html` | Markup, SEO metadata, JSON-LD |
-| `styles.css` | Tokenised styles, dark mode, reduced motion |
+| `styles.css` | Tokens, fonts, page shell, dark mode, reduced motion |
+| `components.css` | Factor groups, level controls, heat ramp, weights |
+| `results.css` | Estimate panel, Fibonacci ribbon, mobile bottom sheet |
+| `fonts/` | Self-hosted Geist and Geist Mono (SIL OFL 1.1) |
 | `sw.js` | Service worker: network-first navigation, cache-first assets |
 | `docs/scoring.md` | How the estimate is calculated, and why |
+| `docs/ui.md` | Visual system: colour, type, motion and layout rules |
 
 ## Deployment
 
