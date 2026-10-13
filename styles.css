@@ -225,6 +225,7 @@ button { font: inherit; color: inherit; }
   top: 0.25rem;
   right: 0;
   width: min(34%, 260px);
+  height: auto;
   overflow: visible;
   pointer-events: none;
 }
