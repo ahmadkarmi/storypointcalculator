@@ -340,13 +340,28 @@
     max-height: calc(90vh - 5.5rem);
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 0 1.25rem 1.5rem;
+    padding: 0 1.25rem;
     opacity: 0;
     transition: opacity 0.25s ease;
   }
 
   .results-panel[data-open='true'] .sheet-body { opacity: 1; }
-  .estimate { padding: 0; background: none; box-shadow: none; }
+
+  /* The estimate card dissolves into the sheet so its actions can pin to the
+     sheet's bottom edge while the breakdown scrolls above them. */
+  .estimate { display: contents; }
+  .sheet-body > .card, #reset { order: 1; }
+
+  .estimate-actions {
+    order: 2;
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    margin: 0 -1.25rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--panel);
+    border-top: 1px solid var(--panel-line);
+  }
   .estimate-points { font-size: 6.5rem; }
 
   .sheet-backdrop {

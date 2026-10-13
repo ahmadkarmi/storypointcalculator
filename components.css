@@ -27,6 +27,7 @@
 
 .group-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.65rem;
@@ -56,12 +57,19 @@
 }
 
 .group-share {
+  margin-left: auto;
   font-family: var(--mono);
   font-size: 0.75rem;
   padding: 1px 7px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
+}
+
+/* Narrow phones: the hint drops to its own line instead of widening the page. */
+@media (max-width: 479px) {
+  .group-rule { display: none; }
+  .group-hint { order: 3; flex-basis: 100%; }
 }
 
 .group-card {
@@ -238,6 +246,12 @@
   gap: 0.75rem;
   margin-bottom: 0.5rem;
   font-size: 0.85rem;
+}
+
+/* Phones: each label gets its own line above its slider. */
+@media (max-width: 639px) {
+  .weight-row { grid-template-columns: minmax(0, 1fr) 2.8rem; row-gap: 0.15rem; margin-bottom: 0.85rem; }
+  .weight-row label { grid-column: 1 / -1; }
 }
 
 .weight-row output { text-align: right; font-family: var(--mono); color: var(--text-muted); }

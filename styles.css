@@ -188,6 +188,8 @@ button { font: inherit; color: inherit; }
 }
 
 .brand {
+  min-width: 0;
+  white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -274,7 +276,9 @@ button { font: inherit; color: inherit; }
 
 @media (min-width: 960px) {
   .layout { grid-template-columns: minmax(0, 1fr) minmax(340px, 410px); }
-  .results-panel { position: sticky; top: 1.5rem; animation-delay: 120ms; }
+  /* --stick-top is set by app.js: a panel taller than the window scrolls
+     with the page until its end is in view, then sticks there. */
+  .results-panel { position: sticky; top: var(--stick-top, 1.5rem); animation-delay: 120ms; }
 }
 
 @media (max-width: 639px) {
@@ -282,6 +286,10 @@ button { font: inherit; color: inherit; }
   .layout { padding: 0.5rem 1rem 2rem; gap: 1.5rem; }
   .btn-text-wide { display: none; }
   #info-btn { width: 44px; padding: 0; }
+}
+
+@media (max-width: 379px) {
+  .tag { display: none; }
 }
 
 /* ----------------------------------------------------------------- about */

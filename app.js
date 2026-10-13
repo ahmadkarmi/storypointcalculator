@@ -164,7 +164,9 @@ function renderResult(result) {
 
   el.peekPoints.textContent = result.points;
   el.peekSize.textContent = result.size;
-  el.peekRange.textContent = range;
+  el.peekRange.textContent = result.range[0] === result.range[1]
+    ? range
+    : `range ${result.range[0]}–${result.range[1]}`;
   if (changed && !first) [el.points, el.size, el.peekPoints].forEach(pop);
 
   el.rule.hidden = !result.ruleFired;
@@ -277,6 +279,22 @@ function initSheet() {
   window.matchMedia('(max-width: 959px)').addEventListener('change', () => {
     setSheet(false);
   });
+}
+
+/**
+ * Desktop sidebar: a panel taller than the window would hide its end behind a
+ * plain sticky top, so stick it by its bottom edge instead. Short panels keep
+ * the normal top offset.
+ */
+function initStickyPanel() {
+  if (typeof ResizeObserver === 'undefined') return;
+  const GAP = 24;
+  const place = () => {
+    const top = Math.min(GAP, window.innerHeight - el.sheet.offsetHeight - GAP);
+    el.sheet.style.setProperty('--stick-top', `${top}px`);
+  };
+  new ResizeObserver(place).observe(el.sheet);
+  window.addEventListener('resize', place);
 }
 
 /* ------------------------------------------------------------------ modal */
@@ -442,6 +460,7 @@ export function initApp() {
   });
 
   initSheet();
+  initStickyPanel();
   initConsent();
   update();
 }
