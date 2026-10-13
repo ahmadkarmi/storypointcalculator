@@ -31,9 +31,16 @@ AddType text/css .css
 AddType application/json .json
 AddType font/woff2 .woff2
 
-# Cache control for static assets
-<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2)$">
+# Images and fonts rarely change: cache them for 30 days
+<FilesMatch "\.(png|jpg|jpeg|gif|ico|svg|woff|woff2)$">
 Header set Cache-Control "max-age=2592000, public"
+</FilesMatch>
+
+# CSS and JS change with every release and are not fingerprinted, so browsers
+# revalidate them on each load (a cheap 304 when unchanged) instead of keeping
+# a stale copy for a month
+<FilesMatch "\.(css|js)$">
+Header set Cache-Control "no-cache"
 </FilesMatch>
 
 # Cache control for HTML and data files

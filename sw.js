@@ -1,4 +1,4 @@
-const CACHE_NAME = 'spcalculator-v5';
+const CACHE_NAME = 'spcalculator-v6';
 
 const ASSETS = [
   './',
@@ -22,7 +22,8 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(ASSETS))
+      // cache: 'reload' skips the HTTP cache, so a stale copy is never baked in.
+      .then((cache) => cache.addAll(ASSETS.map((url) => new Request(url, { cache: 'reload' }))))
       .then(() => self.skipWaiting()),
   );
 });
