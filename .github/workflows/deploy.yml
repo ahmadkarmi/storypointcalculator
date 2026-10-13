@@ -1,0 +1,74 @@
+name: Deploy to DreamHost
+
+# Every push to main is tested, then the static site files are uploaded to
+# DreamHost over SFTP. A red test run never reaches the server.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Test
+        run: |
+          npm ci
+          npm run test:ci
+
+      - name: Check deploy secrets
+        env:
+          DREAMHOST_HOST: ${{ secrets.DREAMHOST_HOST }}
+          DREAMHOST_USER: ${{ secrets.DREAMHOST_USER }}
+          DREAMHOST_PASSWORD: ${{ secrets.DREAMHOST_PASSWORD }}
+          DREAMHOST_PATH: ${{ secrets.DREAMHOST_PATH }}
+        run: |
+          missing=0
+          for name in DREAMHOST_HOST DREAMHOST_USER DREAMHOST_PASSWORD DREAMHOST_PATH; do
+            if [ -z "${!name}" ]; then echo "::error::Secret $name is not set"; missing=1; fi
+          done
+          exit $missing
+
+      # Only what the browser needs; tests, docs and tooling stay off the server.
+      - name: Stage site files
+        run: |
+          mkdir site
+          cp -r index.html privacy.html offline.html robots.txt sitemap.xml manifest.json \
+                sw.js app.js markup.js scoring.js styles.css components.css results.css \
+                .htaccess icons fonts site/
+
+      - name: Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      # Uploads and overwrites; never deletes, so anything else in the web root
+      # (stats, verification files) is left alone.
+      - name: Upload
+        env:
+          DREAMHOST_HOST: ${{ secrets.DREAMHOST_HOST }}
+          DREAMHOST_USER: ${{ secrets.DREAMHOST_USER }}
+          LFTP_PASSWORD: ${{ secrets.DREAMHOST_PASSWORD }}
+          DREAMHOST_PATH: ${{ secrets.DREAMHOST_PATH }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "$DREAMHOST_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          lftp --env-password -u "$DREAMHOST_USER" "sftp://$DREAMHOST_HOST" -e "
+            set net:max-retries 2;
+            set net:timeout 30;
+            mirror --reverse --verbose --parallel=4 site/ '$DREAMHOST_PATH';
+            bye"

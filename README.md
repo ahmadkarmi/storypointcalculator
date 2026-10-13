@@ -64,6 +64,21 @@ Static files served from Dreamhost; `.htaccess` handles HTTPS and the
 non-www → www redirect. There is no SPA rewrite — a missing file returns an
 honest 404.
 
+Every push to `main` runs `.github/workflows/deploy.yml`: the test suite runs
+first, and only a green run uploads the site files over SFTP. Uploads
+overwrite but never delete, so nothing else in the web root is touched. It can
+also be run by hand from the Actions tab.
+
+It reads four repository secrets (Settings → Secrets and variables →
+Actions):
+
+| Secret | Value |
+| ------ | ----- |
+| `DREAMHOST_HOST` | SFTP server, e.g. `iad1-shared-b8-12.dreamhost.com` |
+| `DREAMHOST_USER` | The site's SFTP user |
+| `DREAMHOST_PASSWORD` | That user's password |
+| `DREAMHOST_PATH` | Web root relative to the user's home, e.g. `storypointcalculator.com` |
+
 ## License
 
 ISC
