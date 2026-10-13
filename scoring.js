@@ -24,7 +24,6 @@ export const MAX_LEVEL = 5;
 export const FACTORS = [
   {
     key: 'logic',
-    icon: '\u{1F527}',
     label: 'Business Logic Complexity',
     description: 'How complex is the decision-making or data handling?',
     inverse: false,
@@ -32,7 +31,6 @@ export const FACTORS = [
   },
   {
     key: 'technical',
-    icon: '\u{1F9F1}',
     label: 'Technical Difficulty',
     description: 'How hard is this to build or architect?',
     inverse: false,
@@ -40,7 +38,6 @@ export const FACTORS = [
   },
   {
     key: 'volume',
-    icon: '\u{1F552}',
     label: 'Amount of Work',
     description: 'How many components, modules or screens are involved?',
     inverse: false,
@@ -48,7 +45,6 @@ export const FACTORS = [
   },
   {
     key: 'collaboration',
-    icon: '\u{1F465}',
     label: 'Team Collaboration',
     description: 'How much syncing with other people does this need?',
     inverse: false,
@@ -56,7 +52,6 @@ export const FACTORS = [
   },
   {
     key: 'unknowns',
-    icon: '❓',
     label: 'Unknowns & Ambiguity',
     description: 'How much is still unclear or risky?',
     inverse: false,
@@ -64,7 +59,6 @@ export const FACTORS = [
   },
   {
     key: 'dependencies',
-    icon: '\u{1F517}',
     label: 'External Dependencies',
     description: 'Are we waiting on vendors, APIs or approvals?',
     inverse: false,
@@ -72,7 +66,6 @@ export const FACTORS = [
   },
   {
     key: 'familiarity',
-    icon: '\u{1F9E0}',
     label: 'Familiarity with Task',
     description: 'How confident are we in how to do this?',
     inverse: true,
@@ -80,7 +73,6 @@ export const FACTORS = [
   },
   {
     key: 'clarity',
-    icon: '\u{1F4C3}',
     label: 'Clarity of Requirements',
     description: 'How well documented and understood is the ask?',
     inverse: true,
@@ -127,7 +119,7 @@ const RISK_FLOORS = [
 ];
 
 /** Effort a factor contributes, after inverting the two confidence factors. */
-function effortOf(value, factor) {
+export function effortOf(value, factor) {
   return factor.inverse ? MAX_LEVEL + 1 - value : value;
 }
 

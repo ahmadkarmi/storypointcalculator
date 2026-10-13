@@ -1,4 +1,4 @@
-const CACHE_NAME = 'spcalculator-v3';
+const CACHE_NAME = 'spcalculator-v4';
 
 const ASSETS = [
   './',
@@ -7,9 +7,13 @@ const ASSETS = [
   'offline.html',
   'styles.css',
   'components.css',
+  'results.css',
   'app.js',
+  'markup.js',
   'scoring.js',
   'manifest.json',
+  'fonts/geist-latin.woff2',
+  'fonts/geist-mono-latin.woff2',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/apple-touch-icon.png',

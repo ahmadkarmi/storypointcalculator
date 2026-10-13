@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#2563eb" />
+  <meta name="theme-color" content="#F5F4F0" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#11100D" media="(prefers-color-scheme: dark)" />
 
   <title>Story Point Calculator – Free Agile Estimation Tool</title>
   <meta name="description" content="Estimate story points in seconds. Rate eight factors — complexity, effort, unknowns, dependencies — and get a Fibonacci estimate and T-shirt size you can share with your team." />
@@ -24,8 +25,11 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
+  <link rel="preload" href="fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/geist-mono-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="components.css" />
+  <link rel="stylesheet" href="results.css" />
   <script type="module" src="app.js"></script>
 
   <script type="application/ld+json">
@@ -77,87 +81,134 @@
   </script>
 </head>
 <body>
-  <div class="wrapper">
-    <header class="page-header">
-      <h1>Story Point Calculator</h1>
-      <p class="lede">Rate eight factors and get a Fibonacci estimate, a T-shirt size, and a link you can paste into your ticket.</p>
-      <button class="ghost-btn" id="info-btn" type="button">
-        <span aria-hidden="true">ℹ️</span> How the estimate is calculated
-      </button>
-    </header>
+  <header class="topbar">
+    <a class="brand" href="./">
+      <svg class="brand-mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="#16150F"/><rect x="7" y="16" width="3" height="5" rx="1.5" fill="#FF5A1F"/><rect x="12.5" y="12" width="3" height="9" rx="1.5" fill="#FFFFFF"/><rect x="18" y="7" width="3" height="14" rx="1.5" fill="#FFFFFF"/></svg>
+      <span class="brand-name">Story Point Calculator</span>
+      <span class="tag">v2</span>
+    </a>
+    <button class="btn btn-ghost" id="info-btn" type="button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+      <span class="btn-text-wide">How it works</span>
+    </button>
+  </header>
 
-    <main class="layout">
-      <section class="factors-panel" aria-labelledby="factors-heading">
-        <h2 id="factors-heading" class="sr-only">Estimation factors</h2>
-        <div id="factors" class="factors"></div>
+  <main class="layout">
+    <section class="factors-panel" aria-labelledby="page-title">
+      <div class="hero rise">
+        <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>8 factors → 1 Fibonacci estimate</span>
+        <h1 id="page-title">
+          <span>Size the story,</span>
+          <span class="hero-mono">not the hours<span class="caret" aria-hidden="true"></span></span>
+        </h1>
+        <p class="lede">Rate eight factors. The estimate moves as you answer, and the link carries every answer into your ticket.</p>
+      </div>
 
-        <details class="weights">
-          <summary>Adjust factor weights</summary>
+      <div id="factors" class="factors"></div>
+
+      <details class="weights">
+        <summary>
+          <span class="weights-title">Factor weights<span class="weights-sub" id="weights-sub">all factors × 1</span></span>
+          <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div class="weights-body">
           <p class="weights-intro">
             By default every factor counts equally. Bias one up or down if it
             consistently drives effort on your team. Weights travel in the
             shared link.
           </p>
           <div id="weight-rows"></div>
-          <button type="button" id="weights-reset" class="ghost-btn">Reset weights</button>
-        </details>
-      </section>
+          <button type="button" id="weights-reset" class="btn btn-ghost">Reset weights</button>
+        </div>
+      </details>
+    </section>
 
-      <aside class="results-panel" id="results">
-        <button type="button" class="sheet-peek" id="sheet-toggle"
-                aria-expanded="false" aria-controls="sheet-body"
-                aria-label="Estimate details">
-          <span class="grabber" aria-hidden="true"></span>
-          <span class="peek-row" aria-hidden="true">
-            <span class="peek-title">Estimate details</span>
-            <span class="peek-points" id="peek-points">–</span>
-            <span class="peek-unit">points</span>
-            <span class="size-badge" id="peek-size">–</span>
-            <span class="peek-hint"></span>
+    <aside class="results-panel rise" id="results" aria-label="Estimate">
+      <button type="button" class="sheet-peek" id="sheet-toggle"
+              aria-expanded="false" aria-controls="sheet-body"
+              aria-label="Estimate details">
+        <span class="grabber" aria-hidden="true"></span>
+        <span class="peek-row" aria-hidden="true">
+          <span class="peek-points" id="peek-points">–</span>
+          <span class="peek-meta">
+            <span class="peek-line"><span class="size-badge" id="peek-size">–</span> points</span>
+            <span class="peek-range" id="peek-range"></span>
           </span>
-        </button>
+          <span class="peek-hint">
+            <span class="peek-hint-closed">Details</span><span class="peek-hint-open">Close</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+          </span>
+        </span>
+      </button>
 
-        <div class="sheet-body" id="sheet-body">
-        <div class="card result-card">
-          <h2>Estimate</h2>
-          <p class="result-hero">
-            <span id="points" class="result-points">–</span>
-            <span class="result-unit">points</span>
+      <div class="sheet-body" id="sheet-body">
+        <div class="estimate">
+          <div class="estimate-head">
+            <h2 class="label"><span class="live" aria-hidden="true"></span>Estimate</h2>
+            <span class="mono-muted" id="range"></span>
+          </div>
+          <p class="estimate-hero" aria-live="polite">
+            <span id="points" class="estimate-points">–</span>
+            <span class="estimate-side">
+              <span id="size" class="size-badge">–</span>
+              <span class="estimate-unit">story points</span>
+            </span>
           </p>
-          <p class="result-meta">
-            <span id="size" class="size-badge">–</span>
-            <span id="range" class="result-range"></span>
-          </p>
-          <p id="rule" class="result-rule" hidden></p>
+
+          <div class="meter" id="meter">
+            <div class="meter-track" aria-hidden="true">
+              <span class="meter-tick" style="--at: 0.05"></span>
+              <span class="meter-tick" style="--at: 0.15"></span>
+              <span class="meter-tick" style="--at: 0.30"></span>
+              <span class="meter-tick" style="--at: 0.48"></span>
+              <span class="meter-tick" style="--at: 0.65"></span>
+              <span class="meter-tick" style="--at: 0.80"></span>
+              <span class="meter-tick" style="--at: 0.93"></span>
+              <span class="meter-fill"></span>
+              <span class="meter-marker"></span>
+            </div>
+            <p class="meter-legend"><span>raw score</span><span id="norm"></span></p>
+          </div>
+
+          <ol class="ribbon" id="ribbon" aria-label="Fibonacci scale"></ol>
+
+          <p id="rule" class="rule" hidden></p>
+
+          <div class="estimate-actions">
+            <button type="button" id="copy-link" class="btn btn-accent" data-label="Copy link">
+              <svg class="icon-idle" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+              <svg class="icon-done" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              <span class="btn-label">Copy link</span>
+            </button>
+            <button type="button" id="copy-result" class="btn btn-dark" data-label="Copy summary">
+              <svg class="icon-idle" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+              <svg class="icon-done" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              <span class="btn-label">Copy summary</span>
+            </button>
+          </div>
         </div>
 
         <div class="card">
-          <h3>What drove this estimate</h3>
+          <div class="card-head">
+            <h3>What drove it</h3>
+            <span class="mono-muted">share of effort</span>
+          </div>
           <ul id="drivers" class="drivers"></ul>
+          <details class="breakdown">
+            <summary>Every factor <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <ul id="chart" class="chart"></ul>
+          </details>
         </div>
 
-        <div class="card">
-          <h3>Contribution by factor</h3>
-          <ul id="chart" class="chart"></ul>
-        </div>
+        <button type="button" id="reset" class="btn btn-quiet">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+          Start over
+        </button>
+      </div>
+    </aside>
+  </main>
 
-        <div class="card actions">
-          <button type="button" id="copy-result" data-label="Copy result">Copy result</button>
-          <button type="button" id="copy-link" data-label="Copy link">Copy link</button>
-          <button type="button" id="reset" class="ghost-btn">Reset</button>
-        </div>
-
-        <div class="card">
-          <h3>Fibonacci key</h3>
-          <ul class="fib-list">
-            <li><b>1–2</b> XS</li><li><b>3</b> S</li><li><b>5</b> M</li><li><b>8</b> L</li>
-            <li><b>13</b> XL</li><li><b>21</b> XXL</li><li><b>34</b> Epic</li>
-          </ul>
-        </div>
-        </div>
-      </aside>
-    </main>
-
+  <section class="about">
     <article class="prose">
       <h2>How story point estimation works</h2>
       <p>
@@ -212,41 +263,39 @@
       </p>
 
       <h2>Frequently asked questions</h2>
-      <dl class="faq">
-        <dt>What are story points?</dt>
-        <dd>A relative measure of how much work a task involves, combining complexity, volume and
-          uncertainty into one number so stories can be compared without committing to hours.</dd>
-
-        <dt>Are story points the same as hours?</dt>
-        <dd>No. Points measure relative size, not duration. Two teams can both call a story 5 points
-          and deliver it in very different amounts of time.</dd>
-
-        <dt>What is a T-shirt size?</dt>
-        <dd>A coarser scale — XS through XXL — for teams that prefer a rough grouping to a number.
-          This calculator shows both, so use whichever your team has adopted.</dd>
-
-        <dt>Who should estimate?</dt>
-        <dd>The people doing the work. An estimate handed down by someone else is a deadline wearing
-          a costume, and it will not reflect what the team actually knows.</dd>
-
-        <dt>What if the team disagrees?</dt>
-        <dd>Disagreement is the useful part. A wide spread almost always means people are picturing
-          different scopes, and the conversation that follows is worth more than the number.</dd>
-
-        <dt>Does this replace planning poker?</dt>
-        <dd>No — it gives a starting point. Use it to anchor the discussion, then let the team adjust.
-          The shareable link exists so you can paste your reasoning into the ticket alongside the
-          number.</dd>
-      </dl>
+      <div class="faq">
+        <details>
+          <summary>What are story points?<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p>A relative measure of how much work a task involves, combining complexity, volume and uncertainty into one number so stories can be compared without committing to hours.</p>
+        </details>
+        <details>
+          <summary>Are story points the same as hours?<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p>No. Points measure relative size, not duration. Two teams can both call a story 5 points and deliver it in very different amounts of time.</p>
+        </details>
+        <details>
+          <summary>What is a T-shirt size?<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p>A coarser scale — XS through XXL — for teams that prefer a rough grouping to a number. This calculator shows both, so use whichever your team has adopted.</p>
+        </details>
+        <details>
+          <summary>Who should estimate?<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p>The people doing the work. An estimate handed down by someone else is a deadline wearing a costume, and it will not reflect what the team actually knows.</p>
+        </details>
+        <details>
+          <summary>What if the team disagrees?<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p>Disagreement is the useful part. A wide spread almost always means people are picturing different scopes, and the conversation that follows is worth more than the number.</p>
+        </details>
+        <details>
+          <summary>Does this replace planning poker?<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p>No — it gives a starting point. Use it to anchor the discussion, then let the team adjust. The shareable link exists so you can paste your reasoning into the ticket alongside the number.</p>
+        </details>
+      </div>
     </article>
+  </section>
 
-    <footer class="page-footer">
-      <p>
-        Made by <a href="https://www.ahmadkarmi.com" rel="noopener" target="_blank">Ahmad Al-Karmi</a>
-        · <a href="privacy.html">Privacy</a>
-      </p>
-    </footer>
-  </div>
+  <footer class="page-footer">
+    <span>Made by <a href="https://www.ahmadkarmi.com" rel="noopener" target="_blank">Ahmad Al-Karmi</a></span>
+    <a href="privacy.html">Privacy</a>
+  </footer>
 
   <div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
 
@@ -255,26 +304,27 @@
     <div class="modal-content">
       <div class="modal-head">
         <h2 id="info-modal-title">How the estimate is calculated</h2>
-        <button id="close-info-modal" class="icon-btn" type="button" aria-label="Close">✕</button>
+        <button id="close-info-modal" class="btn icon-btn" type="button" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
       </div>
+      <pre class="formula"><span class="c">// confidence factors are inverted first</span>
+effort = inverse ? 6 - level : level
+sum    = &#931; weight &#215; effort ^ <span class="k">1.7</span>
+norm   = (sum - min) / (max - min)
+points = <span class="k">nearestFibonacciBand</span>(norm)</pre>
       <p>
         Each factor contributes its level raised to a power, so effort escalates rather than adding
-        up in a straight line. The two confidence factors are inverted first: low familiarity and
-        unclear requirements count <em>towards</em> effort.
+        up in a straight line. Low familiarity and unclear requirements count <em>towards</em> effort.
+        The total is normalised against the lowest and highest scores the same eight factors could
+        produce, then mapped onto the nearest Fibonacci band.
       </p>
-      <p>
-        The weighted total is normalised against the lowest and highest scores the same eight
-        factors could produce, then mapped onto the nearest Fibonacci band.
-      </p>
-      <p>Three risk floors then apply, in order:</p>
-      <ul>
-        <li>Unknowns <b>and</b> External Dependencies both at 5 — at least <b>21</b> points</li>
-        <li>Business Logic <b>or</b> Technical Difficulty at 5 — at least <b>13</b> points</li>
-        <li>Unknowns <b>or</b> External Dependencies at 5 — at least <b>8</b> points</li>
+      <p>Three risk floors then apply, in order. A floor only ever raises an estimate.</p>
+      <ul class="floors">
+        <li><span>Unknowns <b>and</b> External Dependencies both at 5</span><b class="mono">&#8805; 21</b></li>
+        <li><span>Business Logic <b>or</b> Technical Difficulty at 5</span><b class="mono">&#8805; 13</b></li>
+        <li><span>Unknowns <b>or</b> External Dependencies at 5</span><b class="mono">&#8805; 8</b></li>
       </ul>
-      <p>
-        A floor only ever raises an estimate. If the curve already scores higher, the curve wins.
-      </p>
     </div>
   </div>
 
@@ -284,8 +334,8 @@
       <a href="privacy.html">Privacy policy</a>
     </p>
     <div class="consent-actions">
-      <button type="button" id="decline-cookies" class="ghost-btn">Decline</button>
-      <button type="button" id="accept-cookies">Accept</button>
+      <button type="button" id="decline-cookies" class="btn btn-ghost">Decline</button>
+      <button type="button" id="accept-cookies" class="btn btn-ink">Accept</button>
     </div>
   </div>
 

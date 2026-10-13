@@ -1,0 +1,372 @@
+/* Estimate panel and mobile sheet. Depends on the tokens defined in styles.css. */
+
+/* --------------------------------------------------------------- results */
+
+.results-panel { display: grid; gap: 0.9rem; min-width: 0; }
+.sheet-body { display: grid; gap: 0.9rem; }
+
+.gridlines,
+.estimate,
+.peek-row {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.estimate {
+  display: grid;
+  gap: 1.35rem;
+  padding: 1.75rem;
+  background-color: var(--panel);
+  color: var(--panel-text);
+  border-radius: 24px;
+  box-shadow: var(--shadow-panel);
+}
+
+.estimate .mono-muted { color: var(--panel-muted); }
+.estimate-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+
+.label {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--panel-muted);
+}
+
+.live { width: 7px; height: 7px; border-radius: 50%; background: #ff8a5b; animation: pulse 2s infinite; }
+
+.estimate-hero { margin: 0; display: flex; align-items: flex-end; gap: 1rem; }
+
+.estimate-points {
+  font-family: var(--mono);
+  font-size: clamp(5.5rem, 9vw, 8rem);
+  font-weight: 600;
+  line-height: 0.8;
+  letter-spacing: -0.07em;
+}
+
+.estimate-side { display: flex; flex-direction: column; gap: 0.5rem; padding-bottom: 0.25rem; }
+.estimate-unit { color: #cfcbc0; font-size: 0.94rem; }
+
+.size-badge {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.meter-track { position: relative; height: 6px; border-radius: 3px; background: var(--panel-raised); }
+
+.meter-tick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: calc(var(--at) * 100%);
+  width: 1px;
+  background: #4a4943;
+}
+
+.meter-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--norm, 0) * 100%);
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(255, 90, 31, 0.25), var(--accent));
+  transition: width 0.55s var(--spring);
+}
+
+.meter-marker {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--norm, 0) * 100%);
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px var(--accent), 0 0 16px var(--accent-glow);
+  transition: left 0.55s var(--spring);
+}
+
+.meter-legend {
+  margin: 0.5rem 0 0;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--panel-faint);
+}
+
+.meter-legend span:last-child { color: #e7e4da; }
+
+.ribbon {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 4px;
+}
+
+/* The current band is one glowing marker that glides along the scale. */
+.ribbon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc((100% - 28px) / 8);
+  border-radius: 10px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 28px var(--accent-glow);
+  transform: translateX(calc(var(--band, 3) * (100% + 4px)));
+  transition: transform 0.5s var(--spring);
+}
+
+.band {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 52px;
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  color: var(--panel-faint);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.band.in-range { background: var(--panel-raised); color: var(--panel-text); border-color: #3a3933; }
+.band.is-current { color: var(--on-accent); border-color: transparent; }
+.band-points { font-family: var(--mono); font-size: 0.875rem; font-weight: 600; }
+.band-size { font-size: 0.625rem; font-weight: 500; opacity: 0.8; }
+
+.rule {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  background: rgba(255, 90, 31, 0.12);
+  border: 1px solid rgba(255, 90, 31, 0.35);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #ffd9c9;
+  animation: rise 0.4s ease both;
+}
+
+.estimate-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+
+.card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.4rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.card-head { display: flex; justify-content: space-between; align-items: baseline; }
+.card h3 { margin: 0; font-size: 0.94rem; font-weight: 600; }
+
+.drivers, .chart { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.85rem; }
+.driver-row { display: flex; justify-content: space-between; gap: 0.75rem; font-size: 0.875rem; }
+.driver-word { color: var(--text-faint); }
+.driver-pct { font-family: var(--mono); font-weight: 600; }
+.driver--none { font-size: 0.875rem; color: var(--text-faint); }
+
+.bar-track, .contrib-track {
+  display: block;
+  height: 6px;
+  margin-top: 0.4rem;
+  border-radius: 3px;
+  background: var(--surface-alt);
+  overflow: hidden;
+}
+
+.bar, .contrib-bar {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.55s var(--ease-out);
+}
+
+.breakdown summary { justify-content: flex-start; gap: 0.4rem; font-size: 0.82rem; color: var(--text-muted); }
+.breakdown .chart { margin-top: 0.85rem; gap: 0.4rem; animation: rise 0.3s ease both; }
+
+.contrib {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5rem 2.8rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+}
+
+.contrib-label { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.contrib-track { margin-top: 0; height: 4px; }
+.contrib-pct { text-align: right; font-family: var(--mono); color: var(--text-muted); }
+
+#reset { justify-self: center; }
+
+/* ------------------------------------------------------------ bottom sheet */
+
+/* Desktop: the peek bar is not needed, the panel is a plain sidebar. */
+.sheet-peek { display: none; }
+.sheet-backdrop { display: none; }
+
+@media (max-width: 959px) {
+  .results-panel {
+    --peek-height: calc(6rem + env(safe-area-inset-bottom));
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 950;
+    gap: 0;
+    max-height: 90vh;
+    padding-bottom: env(safe-area-inset-bottom);
+    color: var(--panel-text);
+    border-radius: 28px 28px 0 0;
+    background: transparent;
+    /* Collapsed: only the floating bar sits above the fold. */
+    transform: translateY(calc(100% - var(--peek-height)));
+    transition: transform 0.45s cubic-bezier(0.2, 0.95, 0.25, 1.05), background-color 0.3s ease;
+    animation: none;
+    overscroll-behavior: contain;
+
+    /* Inside the sheet every surface takes the graphite panel palette. */
+    --surface: var(--panel-raised);
+    --surface-alt: var(--panel);
+    --border: var(--panel-line);
+    --text: var(--panel-text);
+    --text-muted: var(--panel-muted);
+    --text-faint: var(--panel-muted);
+  }
+
+  .results-panel[data-open='true'] {
+    transform: translateY(0);
+    background-color: var(--panel);
+    box-shadow: 0 -20px 60px rgba(22, 21, 15, 0.3);
+  }
+
+  .sheet-peek {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    background: none;
+    border: 0;
+    text-align: left;
+    cursor: pointer;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .grabber {
+    display: none;
+    width: 2.5rem;
+    height: 5px;
+    margin: 0 auto 0.25rem;
+    border-radius: 3px;
+    background: var(--panel-line);
+  }
+
+  .peek-row {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    height: 72px;
+    padding: 0 0.75rem 0 1.25rem;
+    border-radius: 22px;
+    background-color: var(--panel);
+    box-shadow: 0 16px 40px rgba(22, 21, 15, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    transition: height 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .peek-points {
+    min-width: 3rem;
+    font-family: var(--mono);
+    font-size: 2.5rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.06em;
+  }
+
+  .peek-meta { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+  .peek-line { display: flex; align-items: center; gap: 0.4rem; font-size: 0.875rem; font-weight: 500; }
+  .peek-line .size-badge { font-size: 0.75rem; padding: 2px 7px; border-radius: 6px; }
+  .peek-range { font-family: var(--mono); font-size: 0.7rem; color: var(--panel-muted); }
+
+  .peek-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 48px;
+    padding: 0 1rem;
+    border-radius: 14px;
+    background: var(--panel-raised);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .peek-hint-open { display: none; }
+
+  .results-panel[data-open='true'] .grabber { display: block; }
+  .results-panel[data-open='true'] .peek-row { height: 52px; background: none; box-shadow: none; justify-content: flex-end; }
+  .results-panel[data-open='true'] .peek-points,
+  .results-panel[data-open='true'] .peek-meta,
+  .results-panel[data-open='true'] .peek-hint-closed { display: none; }
+  .results-panel[data-open='true'] .peek-hint-open { display: inline; }
+  .results-panel[data-open='true'] .peek-hint svg { transform: rotate(180deg); }
+
+  /* A tap on a factor visibly moves the number, even while collapsed. */
+  .results-panel[data-bump] .peek-row { animation: ripple 0.7s ease-out; }
+
+  /* Sit above the consent bar while it is showing, instead of under it. */
+  body.consent-open .results-panel { bottom: var(--consent-h, 0px); }
+
+  .sheet-body {
+    max-height: calc(90vh - 5.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 1.25rem 1.5rem;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .results-panel[data-open='true'] .sheet-body { opacity: 1; }
+  .estimate { padding: 0; background: none; box-shadow: none; }
+  .estimate-points { font-size: 6.5rem; }
+
+  .sheet-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 940;
+    background: rgba(22, 21, 15, 0.4);
+    backdrop-filter: blur(4px);
+    animation: fade-in 0.25s ease-out;
+  }
+
+  .sheet-backdrop[hidden] { display: none; }
+
+  /* Keep the last factor reachable above the collapsed sheet. */
+  body { padding-bottom: 7rem; }
+  body.sheet-open { overflow: hidden; }
+}
+
+@keyframes ripple {
+  from { box-shadow: 0 16px 40px rgba(22, 21, 15, 0.28), 0 0 0 0 rgba(255, 90, 31, 0.7); }
+  to { box-shadow: 0 16px 40px rgba(22, 21, 15, 0.28), 0 0 0 12px rgba(255, 90, 31, 0); }
+}
