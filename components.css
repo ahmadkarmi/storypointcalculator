@@ -2,21 +2,21 @@
 
 /* ------------------------------------------------------------------ heat */
 
-/* One warm ramp keyed to a factor's effort (data-heat, set by app.js): sand
-   (calm) to ember (hot). Each step is darker than the last, so levels differ
-   in lightness and not only in hue. */
-.factor[data-heat='1'] { --heat: #dad5cb; --heat-text: #16150f; --heat-tint: #efece6; --heat-ink: #4a463f; --heat-dot: #a8a29a; }
-.factor[data-heat='2'] { --heat: #f7cba4; --heat-text: #16150f; --heat-tint: #fcede0; --heat-ink: #7c2d12; --heat-dot: #e9a877; }
-.factor[data-heat='3'] { --heat: #ff9a5c; --heat-text: #16150f; --heat-tint: #ffe6d5; --heat-ink: #7c2d12; --heat-dot: #ff9a5c; }
-.factor[data-heat='4'] { --heat: #ff5a1f; --heat-text: #16150f; --heat-tint: #ffdccb; --heat-ink: #7c2d12; --heat-dot: #ff5a1f; }
-.factor[data-heat='5'] { --heat: #b83208; --heat-text: #ffffff; --heat-tint: #ffd2bf; --heat-ink: #6e1a06; --heat-dot: #b83208; }
+/* One warm ramp keyed to a factor's effort (data-heat, set by app.js on each
+   factor row and its group-header dot): sand (calm) to ember (hot). Each step
+   is darker than the last, so levels differ in lightness and not only hue. */
+[data-heat='1'] { --heat: #dad5cb; --heat-text: #16150f; --heat-tint: #efece6; --heat-ink: #4a463f; --heat-dot: #a8a29a; }
+[data-heat='2'] { --heat: #f7cba4; --heat-text: #16150f; --heat-tint: #fcede0; --heat-ink: #7c2d12; --heat-dot: #e9a877; }
+[data-heat='3'] { --heat: #ff9a5c; --heat-text: #16150f; --heat-tint: #ffe6d5; --heat-ink: #7c2d12; --heat-dot: #ff9a5c; }
+[data-heat='4'] { --heat: #ff5a1f; --heat-text: #16150f; --heat-tint: #ffdccb; --heat-ink: #7c2d12; --heat-dot: #ff5a1f; }
+[data-heat='5'] { --heat: #b83208; --heat-text: #ffffff; --heat-tint: #ffd2bf; --heat-ink: #6e1a06; --heat-dot: #b83208; }
 
 @media (prefers-color-scheme: dark) {
-  .factor[data-heat='1'] { --heat-tint: rgba(218, 213, 203, 0.14); --heat-ink: #d6d1c6; }
-  .factor[data-heat='2'] { --heat-tint: rgba(247, 203, 164, 0.16); --heat-ink: #f7cba4; }
-  .factor[data-heat='3'] { --heat-tint: rgba(255, 154, 92, 0.18); --heat-ink: #ffb98c; }
-  .factor[data-heat='4'] { --heat-tint: rgba(255, 90, 31, 0.2); --heat-ink: #ff9a6b; }
-  .factor[data-heat='5'] { --heat-tint: rgba(184, 50, 8, 0.35); --heat-ink: #ff8a66; }
+  [data-heat='1'] { --heat-tint: rgba(218, 213, 203, 0.14); --heat-ink: #d6d1c6; }
+  [data-heat='2'] { --heat-tint: rgba(247, 203, 164, 0.16); --heat-ink: #f7cba4; }
+  [data-heat='3'] { --heat-tint: rgba(255, 154, 92, 0.18); --heat-ink: #ffb98c; }
+  [data-heat='4'] { --heat-tint: rgba(255, 90, 31, 0.2); --heat-ink: #ff9a6b; }
+  [data-heat='5'] { --heat-tint: rgba(184, 50, 8, 0.35); --heat-ink: #ff8a66; }
 }
 
 /* --------------------------------------------------------------- factors */
@@ -56,7 +56,36 @@
   background: repeating-linear-gradient(90deg, var(--border-strong) 0 4px, transparent 4px 8px);
 }
 
+/* One dot per factor, coloured by its heat: the group's temperature at a glance. */
+.group-heat { display: inline-flex; gap: 3px; }
+.group-heat i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--heat-dot, var(--border-strong));
+  transition: background-color 0.35s ease;
+}
+
+/* The badge's pie fills with the group's share of total effort. */
+@property --share {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+.group-share::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) calc(var(--share) * 1turn), var(--border-strong) 0);
+}
+
 .group-share {
+  transition: --share 0.55s var(--ease-out);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-left: auto;
   font-family: var(--mono);
   font-size: 0.75rem;
@@ -159,8 +188,9 @@
   left: 4px;
   width: calc((100% - 24px) / 5);
   border-radius: 10px;
-  background: var(--heat, var(--text));
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--heat, #000) 35%, transparent);
+  background-color: var(--heat, var(--text));
+  background-image: linear-gradient(rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 55%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 16px color-mix(in srgb, var(--heat, #000) 35%, transparent);
   transform: translateX(calc((var(--level, 3) - 1) * (100% + 4px)));
   transition: transform 0.42s var(--spring), background-color 0.35s ease, box-shadow 0.35s ease;
 }

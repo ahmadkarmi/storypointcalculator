@@ -51,6 +51,7 @@ export function groupMarkup(group, g) {
     <section class="group" aria-labelledby="group-${g}" style="--i: ${g}">
       <div class="group-head">
         <h2 id="group-${g}"><span class="group-num">0${g + 1}</span>${group.title}</h2>
+        <span class="group-heat" aria-hidden="true">${group.indexes.map((i) => `<i data-heat-for="${i}"></i>`).join('')}</span>
         <span class="group-hint">${group.hint}</span>
         <span class="group-rule" aria-hidden="true"></span>
         <span class="group-share" data-share-for="${g}" title="Share of total effort"></span>

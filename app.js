@@ -113,6 +113,7 @@ function syncControls() {
     radio.checked = true;
     row.style.setProperty('--level', level);
     row.dataset.heat = effortOf(level, factor);
+    el.factors.querySelector(`[data-heat-for="${i}"]`).dataset.heat = row.dataset.heat;
     row.querySelectorAll('.segment').forEach((segment, s) => {
       segment.classList.toggle('is-below', s + 1 < level);
     });
@@ -135,7 +136,9 @@ function syncControls() {
 function renderGroupShares(shares) {
   GROUPS.forEach((group, g) => {
     const share = group.indexes.reduce((sum, i) => sum + shares[i], 0);
-    el.factors.querySelector(`[data-share-for="${g}"]`).textContent = `${Math.round(share * 100)}%`;
+    const badge = el.factors.querySelector(`[data-share-for="${g}"]`);
+    badge.textContent = `${Math.round(share * 100)}%`;
+    badge.style.setProperty('--share', share);
   });
 }
 
